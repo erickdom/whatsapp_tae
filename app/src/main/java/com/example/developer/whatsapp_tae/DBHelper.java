@@ -7,6 +7,7 @@ import android.database.DatabaseUtils;
 import android.database.sqlite.SQLiteCantOpenDatabaseException;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.util.Log;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -19,7 +20,7 @@ public class DBHelper extends SQLiteOpenHelper {
 
 
     public DBHelper(Context context) {
-        super(context, DATABASE_NAME, null, 7);
+        super(context, DATABASE_NAME, null, 10);
     }
 
     @Override
@@ -35,14 +36,15 @@ public class DBHelper extends SQLiteOpenHelper {
                         "send varchar(15), " +
                         "date_time datetime DEFAULT CURRENT_TIMESTAMP," +
                         "status varchar(5)," +
-                        "response text)"
+                        "response text," +
+                        "toSend integer DEFAULT 0)"
         );
     }
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
 /*        db.execSQL("\n" +
                 "DROP TABLE IF EXISTS transactions");
-                /*
+
         db.execSQL(
                 "create table transactions " +
                         "(id integer primary key," +
@@ -50,10 +52,45 @@ public class DBHelper extends SQLiteOpenHelper {
                         "send varchar(15), " +
                         "date_time datetime DEFAULT CURRENT_TIMESTAMP," +
                         "status varchar(5)," +
-                        "response text)"
+                        "response text," +
+                        "toSend integer DEFAULT 0)"
         );*/
-//        db.execSQL("\n" +
-//                "UPDATE SQLITE_SEQUENCE SET seq = 200 WHERE name = 'transactions'");
+    }
+    public boolean cancelSend(String folio) {
+        Log.d("DB",folio);
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues contentValues = new ContentValues();
+        contentValues.put("toSend", 1);
+        db.update("transactions", contentValues, "id = " + folio, null);
+        return true;
+    }
+    public ArrayList<Transaction> fetchTransactionsToSend() {
+        ArrayList<Transaction> ids = new ArrayList<>();
+        try{
+            SQLiteDatabase db = this.getReadableDatabase();
+            Cursor res =  db.rawQuery("select * from transactions WHERE toSend=1", null);
+            if (res != null) {
+                if (res.moveToFirst()) {
+                    do {
+                        Transaction transaction = new Transaction(
+                                res.getString(res.getColumnIndex("message")),
+                                res.getString(res.getColumnIndex("status")),
+                                res.getString(res.getColumnIndex("response")),
+                                res.getString(res.getColumnIndex("send")),
+                                res.getString(res.getColumnIndex("id")),
+                                res.getString(res.getColumnIndex("date_time"))
+                        );
+                        ids.add(transaction);
+                    } while (res.moveToNext());
+                    return ids;
+                }
+            }
+            return ids;
+
+        }catch (SQLiteCantOpenDatabaseException e){
+            e.printStackTrace();
+            return ids;
+        }
     }
     public ArrayList<Transaction> fetchTransactions(String date) {
         ArrayList ids = new ArrayList();
@@ -92,11 +129,12 @@ public class DBHelper extends SQLiteOpenHelper {
         contentValues.put("send", send);
         return db.insert("transactions", null, contentValues);
     }
-    public boolean updateTransaction(String id, String status, String response){
+    public boolean updateTransaction(String id, String status, String response,String toSend){
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues contentValues = new ContentValues();
         contentValues.put("status", status);
         contentValues.put("response", response);
+        contentValues.put("toSend", toSend);
         db.update("transactions", contentValues, "id = "+id, null);
         return true;
     }

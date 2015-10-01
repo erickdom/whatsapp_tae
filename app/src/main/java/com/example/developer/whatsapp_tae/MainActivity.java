@@ -48,6 +48,11 @@ public class MainActivity extends AppCompatActivity {
         Log.d(TAG, "Se inicio el monitor en segundo plano");
         startService(Listen);
 
+        Intent Sender = new Intent(MainActivity.this, Sender.class);
+        Log.d(TAG, "Se inicio el monitor de envios en segundo plano");
+        startService(Sender);
+
+
         final Button openWhatsApp = (Button)findViewById(R.id.send);
         openWhatsApp.setOnClickListener(new View.OnClickListener() {
             @Override

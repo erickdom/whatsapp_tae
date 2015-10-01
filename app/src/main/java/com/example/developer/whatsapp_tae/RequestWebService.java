@@ -61,6 +61,14 @@ public class RequestWebService extends AsyncTask<String, String, String> {
             transportSE.call(NAMESPACE + METHOD, envelope);
             testHttpResponse(transportSE);
         } catch (IOException | XmlPullParserException e) {
+//            try {
+////                Log.d(TAG,"1"+this.numero);
+////                Messages messages = new Messages(new String[] {this.numero}, "Hubo un problema con la petición. Intenta más tarde");
+////                messages.sendMessage();
+////                messages.close();
+//            } catch (IOException | TimeoutException e1) {
+//                e1.printStackTrace();
+//            }
             e.printStackTrace();
         }
 
@@ -105,14 +113,17 @@ public class RequestWebService extends AsyncTask<String, String, String> {
                 }else{
                     folio = arrayParse[1];
                 }
-                dbHelper.updateTransaction(folio,Confirmation,msgResponse);
+
+                String folioToUpdate = folio.replace(Settings.APP_ID(this.context),"").replaceFirst("^0+(?!$)","");
+                Log.d("FOLIOREQUEST",folioToUpdate);
+                dbHelper.updateTransaction(folioToUpdate, jsonObject.getString("Response"), msgResponse,"1");
                 dbHelper.close();
 
                 if(Confirmation.compareTo("00") == 0) {
                     Log.d(TAG, "Confirm-->" + this.numero + "Message--->" + msgResponse);
-                    Messages message = new Messages(new String[]{this.numero}, RandomMessages.getStringRandom("Saldo",msgResponse));
-                    message.sendMessage();
-                    message.close();
+//                    Messages message = new Messages(new String[]{this.numero}, RandomMessages.getStringRandom("Saldo",msgResponse));
+//                    message.sendMessage();
+//                    message.close();
                 }else if(Confirmation.compareTo("24") == 0)  {
                     Thread.sleep(3000);
                     RequestWebService request = new RequestWebService(this.context);
@@ -132,9 +143,9 @@ public class RequestWebService extends AsyncTask<String, String, String> {
                     request.execute("sms_check_transaction", this.numero, recursiveJsonTosend);
 
                 } else {
-                    Messages message = new Messages(new String[]{this.numero}, RandomMessages.getStringRandom("Status",msgResponse));
-                    message.sendMessage();
-                    message.close();
+//                    Messages message = new Messages(new String[]{this.numero}, RandomMessages.getStringRandom("Status",msgResponse));
+//                    message.sendMessage();
+//                    message.close();
                 }
             }else if(jsonObject.has("Response")){
                 /**
@@ -178,22 +189,32 @@ public class RequestWebService extends AsyncTask<String, String, String> {
 
                         String folioToUpdate = folio.replace(Settings.APP_ID(this.context),"").replaceFirst("^0+(?!$)","");
                         Log.d("FOLIOREQUEST",folioToUpdate);
-                        dbHelper.updateTransaction(folioToUpdate, jsonObject.getString("Response"), msgResponse);
+                        dbHelper.updateTransaction(folioToUpdate, jsonObject.getString("Response"), msgResponse,"1");
                         dbHelper.close();
 
-                        Messages messages = new Messages(new String[]{this.numero}, RandomMessages.getStringRandom("Status", msgResponse));
-                        messages.sendMessage();
-                        messages.close();
+//                        Messages messages = new Messages(new String[]{this.numero}, RandomMessages.getStringRandom("Status", msgResponse));
+//                        messages.sendMessage();
+//                        messages.close();
                     }
                 }
             }else{
-                Messages messages = new Messages(new String[] {this.numero}, "Hubo un problema con la petición. Intenta más tarde");
+                Log.d(TAG,"2"+this.numero);
+
+                Messages messages = new Messages(new String[] {this.numero}, "Hubo un problema con la respuesta del servidor");
                 messages.sendMessage();
                 messages.close();
             }
 
         } catch (IOException | JSONException | TimeoutException | InterruptedException e) {
-            e.printStackTrace();
-        }
+            try {
+                if(this.numero!=null) {
+                    Messages messages = new Messages(new String[]{this.numero}, "El Servidor TAE NO RESPONDE, VUELVE A INTENTARLO");
+                    messages.sendMessage();
+                    messages.close();
+                }
+            } catch (IOException | TimeoutException e1) {
+                e1.printStackTrace();
+            }
+    }
     }
 }
