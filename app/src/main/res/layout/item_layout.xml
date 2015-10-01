@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent" android:layout_height="?android:attr/listPreferredItemHeight" android:padding="6dip">
+
+    <TextView
+        android:id="@+id/number"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="6dip"
+        android:textSize="18sp"
+        android:text="Numero"/>
+    <TextView
+        android:id="@+id/detalle"
+        android:layout_below="@id/number"
+        android:layout_width="200dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="6dip"
+        android:text="Detalle del mensaje enviado"/>
+    <TextView
+        android:id="@+id/date"
+        android:layout_toEndOf="@id/detalle"
+        android:layout_below="@id/number"
+        android:layout_alignParentEnd="true"
+        android:textAlignment="viewEnd"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="06/09/2015"
+        android:layout_marginStart="20dip"
+        android:layout_alignParentStart="false"
+        android:width="100dp" />
+
+
+</RelativeLayout>

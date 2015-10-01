@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <EditTextPreference
+        android:key="APPID"
+        android:title="APP ID"
+        android:dialogTitle="Introduce un numero"
+        android:inputType="number"
+        android:summary="Identificador unico de la aplicación">
+    </EditTextPreference>
+</PreferenceScreen>

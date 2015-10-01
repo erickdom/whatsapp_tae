@@ -1,0 +1,7 @@
+<resources>
+    <string name="app_name">Whatsapp-TAE</string>
+
+    <string name="hello_world">Hello world!</string>
+    <string name="action_settings">Settings</string>
+    <string name="sync">Sincronizar usuarios</string>
+</resources>
