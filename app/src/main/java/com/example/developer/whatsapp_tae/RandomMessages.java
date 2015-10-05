@@ -22,6 +22,12 @@ public class RandomMessages {
             "Estado de tu operacion %s",
             "Respuesta a su solicitud %s"};
 
+    public static final String[] RANDOM_TIMES = new String[] {
+            "El mensaje que mandaste no sera procesado por limites de tiempo",
+            "Lo sentimos pero el mensaje se recibio hace mas de 2 minutos",
+            ":( Tuvimos un problema y apenas leimos tu mensaje. Por motivos de tiempos no podemos procesar tu solicitud.",
+            "Algo salio mal :( Y no procesamos tu mensaje en un tiempo correcto."};
+
     public static String getStringRandom(String Type, String message){
         Random rand = new Random();
         String messageToSend;
@@ -30,9 +36,11 @@ public class RandomMessages {
         }else if(Type.compareTo("Saldo") == 0){
             messageToSend = String.format(RANDOM_BALANCES[rand.nextInt(RANDOM_BALANCES.length-1)],message);
 
+        }else if(Type.compareTo("Tiempo") == 0){
+            messageToSend = RANDOM_TIMES[rand.nextInt(RANDOM_TIMES.length-1)];
+
         }else{
             messageToSend = String.format(RANDOM_STATUS[rand.nextInt(RANDOM_STATUS.length-1)],message);
-
         }
 
         return messageToSend;

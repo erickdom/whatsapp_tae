@@ -60,7 +60,7 @@ public class DBHelper extends SQLiteOpenHelper {
         Log.d("DB",folio);
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues contentValues = new ContentValues();
-        contentValues.put("toSend", 1);
+        contentValues.put("toSend", 0);
         db.update("transactions", contentValues, "id = " + folio, null);
         return true;
     }
@@ -72,6 +72,7 @@ public class DBHelper extends SQLiteOpenHelper {
             if (res != null) {
                 if (res.moveToFirst()) {
                     do {
+
                         Transaction transaction = new Transaction(
                                 res.getString(res.getColumnIndex("message")),
                                 res.getString(res.getColumnIndex("status")),

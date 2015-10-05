@@ -8,4 +8,10 @@
         android:inputType="number"
         android:summary="Identificador unico de la aplicación">
     </EditTextPreference>
+    <EditTextPreference
+        android:key="URLWS"
+        android:title="WEB SERVICE URL"
+        android:dialogTitle="Ingresa la URL del WS"
+        android:inputType="textUri"
+        android:summary="URL del web service para conectarse"/>
 </PreferenceScreen>

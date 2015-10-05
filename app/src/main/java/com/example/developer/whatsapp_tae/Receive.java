@@ -86,7 +86,7 @@ public class Receive extends IntentService{
 
             //Read OutputCommand & use regex to transform on arrays
             String outputCommand = command.getOutput();
-            outputCommand = outputCommand.replaceAll(".whatsapp.net",".whatsapp.net|");
+            outputCommand = outputCommand.replaceAll(".whatsapp.net", ".whatsapp.net|");
             String[] rows = outputCommand.split("\\|\\r?\\n");
             Log.d("OUTPUT", outputCommand);
 
@@ -114,6 +114,9 @@ public class Receive extends IntentService{
                         if (this.regex(message, "saldo")) {
                             long folio = mydb.insertTransaction(message, numero);
                             String folio_send = getFolio(folio);
+
+                            Log.d("FOLIO",String.valueOf(folio));
+
                             String jsonToSend = message + "*" + folio_send + "*99*" + (numero.substring(3, 13));
                             request.execute("sms_resume", numero, jsonToSend);
 
@@ -134,18 +137,12 @@ public class Receive extends IntentService{
 
                         }
                     }else{
-                        HiloMensajes nuevomensaje = new HiloMensajes("Tu mensaje no se procesara por limite de tiempo.", numero);
+                        HiloMensajes nuevomensaje = new HiloMensajes("1", numero);
                         nuevomensaje.run();
                     }
                     //get the first on the array rows the first is the biggest value
                     if(i==0)
                         mydb.insertLastID(arrayOutput[0]);
-//                    while(request != null){
-//                        if(request.getStatus() == AsyncTask.Status.FINISHED)
-//                        {
-//                            break;
-//                        }
-//                    }
                 }
 
 
@@ -202,8 +199,10 @@ public class Receive extends IntentService{
                 Messages messages;
                 if(this.mje.toLowerCase().compareTo("polo") == 0) {
                     messages = new Messages(new String[]{this.num}, "La clave es marco ;) !!!");
-                }else if(this.mje.toLowerCase().compareTo("marco") == 0){
+                }else if(this.mje.toLowerCase().compareTo("marco") == 0) {
                     messages = new Messages(new String[]{this.num}, "Polo");
+                }else if(this.mje.compareTo("1") == 0){
+                    messages = new Messages(new String[]{this.num}, RandomMessages.getStringRandom("Tiempo",""));
 
                 }else{
                      messages = new Messages(new String[]{this.num}, RandomMessages.getStringRandom("Error",this.mje));

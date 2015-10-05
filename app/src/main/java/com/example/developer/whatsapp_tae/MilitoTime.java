@@ -1,8 +1,6 @@
 package com.example.developer.whatsapp_tae;
 
-/**
- * Created by developer on 1/10/15.
- */
+
 public class MilitoTime {
     long minute;
     long second;

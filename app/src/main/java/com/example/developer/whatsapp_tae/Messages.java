@@ -15,23 +15,21 @@ import java.util.concurrent.TimeoutException;
 public class Messages {
 
     private String[] __destinos = new String[50];
-    private String[] __Meessages = new String[50];
     private String __Meessage = "";
     private Shell __shell;
     private ArrayList<Transaction> transactionsToSend;
     private static final String TAG = "MESSAGE-CLASS" ;
     private Context context;
+
     public Messages(String[] destinos, String message) throws IOException, TimeoutException {
         this.__destinos = destinos;
         this.__Meessage = URLDecoder.decode(message,"UTF-8").replaceAll("\\n","");
-        this.__Meessage = URLDecoder.decode(message,"UTF-8").replaceAll("\\n","");
+        this.__Meessage = URLDecoder.decode(message,"UTF-8").replaceAll("\\n", "");
         this.__shell = Shell.startRootShell();
 
     }
 
     public Messages(ArrayList<Transaction> TransactionsToSend, Context context) throws IOException, TimeoutException {
-//        this.__destinos = destinos;
-//        this.__Meessages = message;
         this.context = context;
         this.__shell = Shell.startRootShell();
         this.transactionsToSend = TransactionsToSend;
@@ -109,10 +107,8 @@ public class Messages {
     public Boolean sendMessages() throws IOException, TimeoutException, InterruptedException {
         //Inicia la vida loca :v
 
-        commandsTestOnClick("ps | grep -w 'com.whatsapp' | awk '{print $2}' | xargs kill");
         for (Transaction transaction : transactionsToSend) {
             DBHelper mydb = new DBHelper(this.context);
-            Thread.sleep(500);
             String str3;
             long l1;
             long l2;
@@ -120,6 +116,7 @@ public class Messages {
             String str1;
             String str2;
             Random localRandom = new Random(20L);
+            commandsTestOnClick("ps | grep -w 'com.whatsapp' | awk '{print $2}' | xargs kill");
 
             str3 = "521" + transaction.getNumero() + "@s.whatsapp.net";
             l1 = System.currentTimeMillis();
@@ -133,7 +130,7 @@ public class Messages {
                     + "-"
                     + k
                     + "', 0,0, '"
-                    + URLDecoder.decode(transaction.getResponse(),"UTF-8").replaceAll("\\n","")
+                    + URLDecoder.decode(transaction.getDetalle(),"UTF-8").replaceAll("\\n","")
                     + "',"
                     + l1
                     + ",'','', '0', 0,'', 0.0,0.0,'','',"
@@ -147,15 +144,28 @@ public class Messages {
 
             str3 = "sqlite3 /data/data/com.whatsapp/databases/msgstore.db \"update chat_list set message_table_id = (select max(messages._id) from messages) where chat_list.key_remote_jid='"
                     + str3 + "';\"";
-            transaction.getFolio();
             this.__shell.add(
                     new SimpleCommand(
                             "chmod 777 /data/data/com.whatsapp/databases/msgstore.db"))
                     .waitForFinish();
-            this.__shell.add(new SimpleCommand(str1)).waitForFinish();
-            this.__shell.add(new SimpleCommand(str2)).waitForFinish();
-            this.__shell.add(new SimpleCommand(str3)).waitForFinish();
-            mydb.cancelSend(transaction.getFolio());
+
+            SimpleCommand insertMessage = new SimpleCommand(str1);
+            SimpleCommand insertChat = new SimpleCommand(str2);
+            SimpleCommand updateChat = new SimpleCommand(str3);
+
+            this.__shell.add(insertMessage).waitForFinish();
+            if(insertMessage.getOutput().compareTo("Error: database is locked") == 0) {
+                return this.sendMessage();
+
+            }else{
+                this.__shell.add(insertChat).waitForFinish();
+                this.__shell.add(updateChat).waitForFinish();
+                Log.d(TAG, "CANCELED>>>>" + transaction.getFolio());
+                mydb.cancelSend(transaction.getFolio());
+                android.util.Log.d("FOLIO", transaction.getFolio());
+
+            }
+            Thread.sleep(1000);
         }
         return true;
     }

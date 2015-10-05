@@ -31,8 +31,9 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        RootCommands.DEBUG = true;
+        RootCommands.DEBUG = false;
 
+        //Show today transactions
         DBHelper mydb = new DBHelper(getApplicationContext());
         ArrayList<Transaction> arrayOfTransactions = mydb.fetchTransactions(getDate());
         mydb.close();
@@ -40,14 +41,13 @@ public class MainActivity extends AppCompatActivity {
         UsersAdapter adapter = new UsersAdapter(this, arrayOfTransactions);
         ListView listView = (ListView) findViewById(R.id.list);
         listView.setAdapter(adapter);
-
         wContacts = new WContacts(getApplicationContext());
 
-
+        //Servicio de recepcion
         Intent Listen = new Intent(MainActivity.this, Receive.class);
         Log.d(TAG, "Se inicio el monitor en segundo plano");
         startService(Listen);
-
+        //Servicio de Envio
         Intent Sender = new Intent(MainActivity.this, Sender.class);
         Log.d(TAG, "Se inicio el monitor de envios en segundo plano");
         startService(Sender);
@@ -61,7 +61,6 @@ public class MainActivity extends AppCompatActivity {
 
             }
         });
-
     }
 
     public String getDate(){
@@ -96,10 +95,7 @@ public class MainActivity extends AppCompatActivity {
     public class BroadcastReceiverListen extends BroadcastReceiver {
         @Override
         public void onReceive(Context context, Intent intent) {
-//            if(intent.getAction().equals(Receive.ACTION_PROGRESO)) {
-////                int prog = intent.getIntExtra("progreso",0);
-//
-//            }
+
         }
     }
 
@@ -142,7 +138,6 @@ public class MainActivity extends AppCompatActivity {
         }
     }
     class NotificationReceiver extends BroadcastReceiver{
-
         @Override
         public void onReceive(Context context, Intent intent) {
             Log.d(TAG,"Receive");

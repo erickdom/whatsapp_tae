@@ -32,23 +32,32 @@ public class Sender extends IntentService {
     }
 
     private void ListenSenders() throws InterruptedException {
-        Thread.sleep(5000);
-
+        Thread.sleep(3000);
         DBHelper mydb = new DBHelper(getApplicationContext());
         ArrayList<Transaction> arrayOfTransactions = mydb.fetchTransactionsToSend();
         Log.d(TAG, String.valueOf(arrayOfTransactions.size()));
+        mydb.close();
 
         if(arrayOfTransactions.size() > 0){
-            Log.d(TAG, arrayOfTransactions.get(0).getNumero());
+            Log.d(TAG, arrayOfTransactions.get(0).getFolio());
+            if(arrayOfTransactions.size() > 1) {
+                Log.d(TAG, arrayOfTransactions.get(1).getFolio());
+
+            }
+            if(arrayOfTransactions.size() > 2) {
+                Log.d(TAG, arrayOfTransactions.get(2).getFolio());
+
+            }
             try {
                 Messages messages = new Messages(arrayOfTransactions,getApplicationContext());
                 messages.sendMessages();
+                Log.d("FOLIO", "");
+
                 messages.close();
             } catch (IOException | TimeoutException e) {
                 e.printStackTrace();
             }
         }
-        mydb.close();
 
 
 

@@ -25,7 +25,6 @@ public class RequestWebService extends AsyncTask<String, String, String> {
     private String numero = "";
     private String __jsonToSend = "";
     public static final String NAMESPACE = Settings.NAMESPACE;
-    public static final String urlString = Settings.URL;
     public ContentResolver contentResolver;
     private Context context;
 
@@ -44,6 +43,8 @@ public class RequestWebService extends AsyncTask<String, String, String> {
         this.numero = params[1];
         this.__jsonToSend = params[2];
         Log.d(TAG,this.__jsonToSend);
+        Log.d("FOLIO",String.valueOf("20"));
+
         SoapObject request = new SoapObject(NAMESPACE, METHOD);
         if(METHOD.compareTo("sms_check_transaction") == 0 || METHOD.compareTo("whatsapp_device") == 0 )
             request.addProperty("jrquest", this.__jsonToSend);
@@ -51,9 +52,8 @@ public class RequestWebService extends AsyncTask<String, String, String> {
             request.addProperty("sgateway", this.__jsonToSend);
         }
 
-
         SoapSerializationEnvelope envelope = getSoapSerializationEnvelope(request);
-        HttpTransportSE transportSE = new HttpTransportSE(urlString);
+        HttpTransportSE transportSE = new HttpTransportSE(Settings.URL(this.context));
         transportSE.debug = true;
         transportSE.setXmlVersionTag(Settings.XML_VERSSION);
 
@@ -61,14 +61,6 @@ public class RequestWebService extends AsyncTask<String, String, String> {
             transportSE.call(NAMESPACE + METHOD, envelope);
             testHttpResponse(transportSE);
         } catch (IOException | XmlPullParserException e) {
-//            try {
-////                Log.d(TAG,"1"+this.numero);
-////                Messages messages = new Messages(new String[] {this.numero}, "Hubo un problema con la petición. Intenta más tarde");
-////                messages.sendMessage();
-////                messages.close();
-//            } catch (IOException | TimeoutException e1) {
-//                e1.printStackTrace();
-//            }
             e.printStackTrace();
         }
 
@@ -113,17 +105,15 @@ public class RequestWebService extends AsyncTask<String, String, String> {
                 }else{
                     folio = arrayParse[1];
                 }
-
-                String folioToUpdate = folio.replace(Settings.APP_ID(this.context),"").replaceFirst("^0+(?!$)","");
-                Log.d("FOLIOREQUEST",folioToUpdate);
-                dbHelper.updateTransaction(folioToUpdate, jsonObject.getString("Response"), msgResponse,"1");
-                dbHelper.close();
+                Log.d("FOLIO",folio);
 
                 if(Confirmation.compareTo("00") == 0) {
                     Log.d(TAG, "Confirm-->" + this.numero + "Message--->" + msgResponse);
-//                    Messages message = new Messages(new String[]{this.numero}, RandomMessages.getStringRandom("Saldo",msgResponse));
-//                    message.sendMessage();
-//                    message.close();
+                    String folioToUpdate = folio.replace(Settings.APP_ID(this.context),"").replaceFirst("^0+(?!$)","");
+                    Log.d("FOLIOREQUEST", folioToUpdate);
+
+                    dbHelper.updateTransaction(folioToUpdate, jsonObject.getString("Confirmation"), RandomMessages.getStringRandom("Status", msgResponse),"1");
+                            dbHelper.close();
                 }else if(Confirmation.compareTo("24") == 0)  {
                     Thread.sleep(3000);
                     RequestWebService request = new RequestWebService(this.context);
@@ -143,9 +133,10 @@ public class RequestWebService extends AsyncTask<String, String, String> {
                     request.execute("sms_check_transaction", this.numero, recursiveJsonTosend);
 
                 } else {
-//                    Messages message = new Messages(new String[]{this.numero}, RandomMessages.getStringRandom("Status",msgResponse));
-//                    message.sendMessage();
-//                    message.close();
+                    String folioToUpdate = folio.replace(Settings.APP_ID(this.context),"").replaceFirst("^0+(?!$)","");
+                    Log.d("FOLIOREQUEST", folioToUpdate);
+                    dbHelper.updateTransaction(folioToUpdate, jsonObject.getString("Confirmation"), RandomMessages.getStringRandom("Status", msgResponse), "1");
+                            dbHelper.close();
                 }
             }else if(jsonObject.has("Response")){
                 /**
@@ -186,15 +177,12 @@ public class RequestWebService extends AsyncTask<String, String, String> {
                         String folio = jsonObjectSended.getString("Folio_Pos");
 
                         DBHelper dbHelper = new DBHelper(this.context);
-
                         String folioToUpdate = folio.replace(Settings.APP_ID(this.context),"").replaceFirst("^0+(?!$)","");
                         Log.d("FOLIOREQUEST",folioToUpdate);
-                        dbHelper.updateTransaction(folioToUpdate, jsonObject.getString("Response"), msgResponse,"1");
-                        dbHelper.close();
+                        Log.d("FOLIO",folioToUpdate);
 
-//                        Messages messages = new Messages(new String[]{this.numero}, RandomMessages.getStringRandom("Status", msgResponse));
-//                        messages.sendMessage();
-//                        messages.close();
+                        dbHelper.updateTransaction(folioToUpdate, jsonObject.getString("Response"),RandomMessages.getStringRandom("Status", msgResponse),"1");
+                        dbHelper.close();
                     }
                 }
             }else{
@@ -206,6 +194,7 @@ public class RequestWebService extends AsyncTask<String, String, String> {
             }
 
         } catch (IOException | JSONException | TimeoutException | InterruptedException e) {
+            e.printStackTrace();
             try {
                 if(this.numero!=null) {
                     Messages messages = new Messages(new String[]{this.numero}, "El Servidor TAE NO RESPONDE, VUELVE A INTENTARLO");
