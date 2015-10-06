@@ -44,7 +44,7 @@ public class DBHelper extends SQLiteOpenHelper {
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
 /*        db.execSQL("\n" +
                 "DROP TABLE IF EXISTS transactions");
-
+*/
         db.execSQL(
                 "create table transactions " +
                         "(id integer primary key," +
@@ -54,7 +54,7 @@ public class DBHelper extends SQLiteOpenHelper {
                         "status varchar(5)," +
                         "response text," +
                         "toSend integer DEFAULT 0)"
-        );*/
+        );
     }
     public boolean cancelSend(String folio) {
         Log.d("DB",folio);
@@ -94,7 +94,7 @@ public class DBHelper extends SQLiteOpenHelper {
         }
     }
     public ArrayList<Transaction> fetchTransactions(String date) {
-        ArrayList ids = new ArrayList();
+        ArrayList<Transaction> ids = new ArrayList<>();
         try{
             SQLiteDatabase db = this.getReadableDatabase();
             Cursor res =  db.rawQuery("select * from transactions WHERE date(date_time)= '"+date+"' ORDER BY id DESC", null);
@@ -149,7 +149,6 @@ public class DBHelper extends SQLiteOpenHelper {
         }else {
             updateID(ID);
         }
-//        Log.d("DBHELPER", "SE ARMO ->" + ID);
         return true;
     }
     public int numberOfRows(){

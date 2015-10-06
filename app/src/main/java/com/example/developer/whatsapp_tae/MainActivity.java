@@ -1,19 +1,19 @@
 package com.example.developer.whatsapp_tae;
 
+import android.app.Activity;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ArrayAdapter;
 import android.widget.Button;
-import android.widget.ListView;
 import android.widget.TextView;
 
 import org.sufficientlysecure.rootcommands.RootCommands;
@@ -23,7 +23,7 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Locale;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends Activity {
 
     private static final String TAG = "WHATSAPP_DEMO";
     WContacts wContacts = null;
@@ -39,7 +39,8 @@ public class MainActivity extends AppCompatActivity {
         mydb.close();
 
         UsersAdapter adapter = new UsersAdapter(this, arrayOfTransactions);
-        ListView listView = (ListView) findViewById(R.id.list);
+        RecyclerView listView = (RecyclerView) findViewById(R.id.list);
+        listView.setLayoutManager(new LinearLayoutManager(getApplicationContext()));
         listView.setAdapter(adapter);
         wContacts = new WContacts(getApplicationContext());
 
@@ -52,15 +53,6 @@ public class MainActivity extends AppCompatActivity {
         Log.d(TAG, "Se inicio el monitor de envios en segundo plano");
         startService(Sender);
 
-
-        final Button openWhatsApp = (Button)findViewById(R.id.send);
-        openWhatsApp.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                wContacts.Sync();
-
-            }
-        });
     }
 
     public String getDate(){
@@ -88,6 +80,8 @@ public class MainActivity extends AppCompatActivity {
             startActivity(new Intent(MainActivity.this,
                     MySettings.class));
             return true;
+        }else if( id == R.id.sync) {
+            wContacts.Sync();
         }
 
         return super.onOptionsItemSelected(item);
@@ -99,43 +93,85 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    public static class UsersAdapter extends ArrayAdapter<Transaction> {
+    public static class UsersAdapter extends RecyclerView.Adapter<UsersAdapter.ViewHolder> {
+        Context context;
+        ArrayList<Transaction> transactions;
+        @Override
+        public ViewHolder onCreateViewHolder(ViewGroup viewGroup, int i) {
+            LayoutInflater inflater = LayoutInflater.from(viewGroup.getContext());
+            View view = inflater.inflate(R.layout.item_layout, null);
+            ViewHolder viewHolder = new ViewHolder(view, new ViewHolder.IMyViewHolderClicks(){
 
-        static class ViewHolder {
-            TextView number;
-            TextView detalle;
-            TextView date;
-        }
+                @Override
+                public void onFolio(View caller, ViewHolder holder) {
+                    Log.d(TAG,">>>><<<<" + (holder.folio));
+                    Intent detalleIntent = new Intent(context,TransactionActivity.class);
+                    detalleIntent.putExtra("Folio",holder.folio);
+                    detalleIntent.putExtra("Numero",holder.number_text);
+                    detalleIntent.putExtra("Detalle",holder.detalle_text);
+                    detalleIntent.putExtra("Fecha",holder.date_text);
+                    context.startActivity(detalleIntent);
+                }
+            });
 
-        public UsersAdapter(Context context, ArrayList<Transaction> transactions) {
-            super(context, 0, transactions);
+            return viewHolder;
         }
 
         @Override
-        public View getView(int position, View convertView, ViewGroup parent) {
-            // Get the data item for this position
-            Transaction transaction = getItem(position);
-            // Check if an existing view is being reused, otherwise inflate the view
+        public void onBindViewHolder(ViewHolder viewHolder, int position) {
+            Transaction transaction = this.transactions.get(position);
+            viewHolder.date.setText(String.valueOf(transaction.getFecha()));
+            viewHolder.detalle.setText(String.valueOf(transaction.getDetalle()));
+            viewHolder.number.setText(String.valueOf(transaction.getNumero()));
 
-            ViewHolder viewHolder;
-            if (convertView == null) {
-                viewHolder = new ViewHolder();
-                convertView = LayoutInflater.from(getContext()).inflate(R.layout.item_layout, parent, false);
-                viewHolder.date = (TextView)convertView.findViewById(R.id.date);
-                viewHolder.detalle = (TextView)convertView.findViewById(R.id.detalle);
-                viewHolder.number = (TextView)convertView.findViewById(R.id.number);
-                convertView.setTag(viewHolder);
-            }else{
-                viewHolder = (ViewHolder) convertView.getTag();
-            }
-            // Lookup view for data population
-            // Populate the data into the template view using the data object
-            viewHolder.number.setText(transaction.getNumero());
-            viewHolder.detalle.setText(transaction.getDetalle());
-            viewHolder.date.setText(transaction.getFecha());
-            // Return the completed view to render on screen
-            return convertView;
+            viewHolder.folio = Settings.APP_ID(context) + String.format("%07d",Long.parseLong(transaction.getFolio()));
+            viewHolder.date_text = transaction.getFecha();
+            viewHolder.detalle_text = transaction.getDetalle();
+            viewHolder.number_text = transaction.getNumero();
+
         }
+
+        @Override
+        public int getItemCount() {
+            if(this.transactions != null)
+            {
+                return this.transactions.size();
+            }else{
+                return 0;
+            }
+        }
+
+        static class ViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
+            TextView number;
+            TextView detalle;
+            TextView date;
+            String folio, detalle_text, date_text, number_text;
+            public IMyViewHolderClicks mListener;
+            public ViewHolder(View view, IMyViewHolderClicks iMyViewHolderClicks) {
+                super(view);
+                mListener = iMyViewHolderClicks;
+                this.number = (TextView) view.findViewById(R.id.number);
+                this.detalle = (TextView) view.findViewById(R.id.detalle);
+                this.date = (TextView) view.findViewById(R.id.date);
+                view.setOnClickListener(this);
+
+            }
+
+            @Override
+            public void onClick(View v) {
+                mListener.onFolio(v,this);
+            }
+            public interface IMyViewHolderClicks {
+                void onFolio(View caller, ViewHolder holder);
+            }
+        }
+
+
+        public UsersAdapter(Context context, ArrayList<Transaction> transactions) {
+            this.context = context;
+            this.transactions = transactions;
+        }
+
     }
     class NotificationReceiver extends BroadcastReceiver{
         @Override

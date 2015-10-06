@@ -4,4 +4,6 @@
     <string name="hello_world">Hello world!</string>
     <string name="action_settings">Settings</string>
     <string name="sync">Sincronizar usuarios</string>
+    <string name="numero_prueba">(555)-555-5555</string>
+    <string name="detalle_description">El estado de tu transacción es: La transaccion se realizo correctamanete!</string>
 </resources>
