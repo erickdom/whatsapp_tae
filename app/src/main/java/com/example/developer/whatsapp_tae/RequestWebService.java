@@ -89,19 +89,20 @@ public class RequestWebService extends AsyncTask<String, String, String> {
     protected void onPostExecute(String result) {
         // execution of result of Long time consuming operation
         // In this example it is the return value from the web service
+        DBHelper dbHelper = new DBHelper(this.context);
+
         try {
             Log.d(TAG,result);
             JSONObject jsonObject = new JSONObject(result);
+
             if(jsonObject.has("Confirmation")) {
                 String Confirmation = jsonObject.getString("Confirmation");
                 String msgResponse = jsonObject.getString("msgResponse");
                 String[] arrayParse = this.__jsonToSend.split("\\*");
 
-                DBHelper dbHelper = new DBHelper(this.context);
                 String folio;
                 if(arrayParse.length == 6){
                     folio = arrayParse[3];
-                    dbHelper.close();
                 }else{
                     folio = arrayParse[1];
                 }
@@ -113,8 +114,7 @@ public class RequestWebService extends AsyncTask<String, String, String> {
                     Log.d("FOLIOREQUEST", folioToUpdate);
 
                     dbHelper.updateTransaction(folioToUpdate, jsonObject.getString("Confirmation"), RandomMessages.getStringRandom("Status", msgResponse),"1");
-                            dbHelper.close();
-                }else if(Confirmation.compareTo("24") == 0)  {
+                }else if(Confirmation.compareTo("24") == 0 || Confirmation.compareTo("17") == 0)  {
                     Thread.sleep(3000);
                     RequestWebService request = new RequestWebService(this.context);
                     /**
@@ -130,34 +130,25 @@ public class RequestWebService extends AsyncTask<String, String, String> {
                     String send = arrayParse[5];
                     String recursiveJsonTosend;
                     recursiveJsonTosend = "{\"Folio_Pos\":\""+ folio +"\",\"User\":\""+ send +"\"}";
-                    request.execute("sms_check_transaction", this.numero, recursiveJsonTosend);
+//                    recursiveJsonTosend = "{\"Folio_Pos\":\"8990000136\",\"User\":\""+ send +"\"}";
+
+                    String folioToUpdate = folio.replace(Settings.APP_ID(this.context),"").replaceFirst("^0+(?!$)","");
+
+                    double difference = Double.parseDouble(dbHelper.getDiffDateTransaction(folioToUpdate));
+                    Log.d(TAG, String.valueOf(difference));
+                    if(difference < 120.0){
+                        request.execute("sms_check_transaction", this.numero, recursiveJsonTosend);
+                    }else{
+                        dbHelper.updateTransaction(folioToUpdate, jsonObject.getString("Response"),RandomMessages.getStringRandom("Status", msgResponse),"1");
+                    }
+
 
                 } else {
                     String folioToUpdate = folio.replace(Settings.APP_ID(this.context),"").replaceFirst("^0+(?!$)","");
                     Log.d("FOLIOREQUEST", folioToUpdate);
                     dbHelper.updateTransaction(folioToUpdate, jsonObject.getString("Confirmation"), RandomMessages.getStringRandom("Status", msgResponse), "1");
-                            dbHelper.close();
                 }
             }else if(jsonObject.has("Response")){
-                /**
-                 *  "{'Folio_Pos':'"+FolioPos+"','User':'"+SimCliente+"'}";
-                 *  string wsResp = ws.sms_check_transaction(jsonWs);
-                 *  -------------------------------------------------
-                 *  {"User":"6144135400","Response":"00","Description":"TRANSACCION EXITOSA",
-                 *  "MSG_Response":"TRANSACCION EXITOSA TELEFONO: 5554555555 PRODUCTO: TELCEL 20.0000 FOLIO: 769223",
-                 *  "Folio_Carrier":"769223", "transaction_date":"08/10/2014 04:17:00 a.m."}
-                 *  ******************************************************
-                 *  {"Confirmation":"12","Description":"TELEFONO NO REGISTRADO","Folio":"",
-                 *  "Notice":"","transaction_date":""}
-                 *  {"User":"6144135400",
-                 *  ******************************************************
-                 *  "Response":"07",
-                 *  "Description":"RECHAZO TABLA DE TRANSACCIONES LLENA",
-                 *  "MSG_Response":"RECHAZO TABLA DE TRANSACCIONES LLENA TELEFONO: 6566082326 PRODUCTO: TELCEL 30.0000 FOLIO: 207109",
-                 *  "Folio_Carrier":"207109",
-                 *  "transaction_date":"11/06/2015 06:08:20 a.m."}
-                 *  print "Revisa transaccion"
-                 */
                 if(jsonObject.has("whatsapp_device")) {
                     WContacts wContacts = new WContacts(context);
                     try {
@@ -167,27 +158,59 @@ public class RequestWebService extends AsyncTask<String, String, String> {
                     }
 
                 }else{
-                    if(jsonObject.getString("Response").compareTo("24") == 0)
+                    if(jsonObject.getString("Response").compareTo("24") == 0 || jsonObject.getString("Response").compareTo("17") == 0 )
                     {
-                        RequestWebService request = new RequestWebService(this.context);
-                        request.execute("sms_check_transaction", this.numero, this.__jsonToSend);
-                    }else {
+//                        JSONObject jsonObjectSended = new JSONObject(this.__jsonToSend);
+                        Thread.sleep(3000);
+
                         String msgResponse = jsonObject.getString("MSG_Response");
+
+                        String[] arrayParse = this.__jsonToSend.split("\\*");
+
                         JSONObject jsonObjectSended = new JSONObject(this.__jsonToSend);
                         String folio = jsonObjectSended.getString("Folio_Pos");
 
-                        DBHelper dbHelper = new DBHelper(this.context);
+/*                        if(arrayParse.length == 6){
+                            folio = arrayParse[3];
+                            dbHelper.close();
+                        }else{
+                            folio = arrayParse[1];
+                        }*/
+
+                        String folioToUpdate = folio.replace(Settings.APP_ID(this.context),"").replaceFirst("^0+(?!$)","");
+
+                        double difference = Double.parseDouble(dbHelper.getDiffDateTransaction(folioToUpdate));
+                        Log.d(TAG, String.valueOf(difference));
+                        if(difference < 120.0){
+                            RequestWebService request = new RequestWebService(this.context);
+                            request.execute("sms_check_transaction", this.numero, this.__jsonToSend);
+                        }else{
+                            dbHelper.updateTransaction(folioToUpdate, jsonObject.getString("Response"), RandomMessages.getStringRandom("Status", msgResponse), "1");
+                        }
+
+                    }else {
+                        String msgResponse = jsonObject.getString("MSG_Response");
+//                        JSONObject jsonObjectSended = new JSONObject(msgResponse);
+                        String folio;
+                        if(jsonObject.has("Folio_POS")){
+
+                            folio = jsonObject.getString("Folio_POS");
+                        }else{
+                            JSONObject jsonSended = new JSONObject(this.__jsonToSend);
+                            folio = jsonSended.getString("Folio_Pos");
+                        }
+
                         String folioToUpdate = folio.replace(Settings.APP_ID(this.context),"").replaceFirst("^0+(?!$)","");
                         Log.d("FOLIOREQUEST",folioToUpdate);
                         Log.d("FOLIO",folioToUpdate);
 
                         dbHelper.updateTransaction(folioToUpdate, jsonObject.getString("Response"),RandomMessages.getStringRandom("Status", msgResponse),"1");
-                        dbHelper.close();
                     }
-                }
-            }else{
-                Log.d(TAG,"2"+this.numero);
 
+                }
+                dbHelper.close();
+
+            }else{
                 Messages messages = new Messages(new String[] {this.numero}, "Hubo un problema con la respuesta del servidor");
                 messages.sendMessage();
                 messages.close();

@@ -10,8 +10,6 @@ import android.database.sqlite.SQLiteOpenHelper;
 import android.util.Log;
 
 import java.util.ArrayList;
-import java.util.List;
-
 
 public class DBHelper extends SQLiteOpenHelper {
 
@@ -42,9 +40,6 @@ public class DBHelper extends SQLiteOpenHelper {
     }
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-/*        db.execSQL("\n" +
-                "DROP TABLE IF EXISTS transactions");
-*/
         db.execSQL(
                 "create table transactions " +
                         "(id integer primary key," +
@@ -83,6 +78,7 @@ public class DBHelper extends SQLiteOpenHelper {
                         );
                         ids.add(transaction);
                     } while (res.moveToNext());
+                    res.close();
                     return ids;
                 }
             }
@@ -111,16 +107,15 @@ public class DBHelper extends SQLiteOpenHelper {
                                 );
                         ids.add(transaction);
                     } while (res.moveToNext());
+                    res.close();
                     return ids;
                 }
             }
-            ids.add(new Transaction("","","","","", ""));
-            return ids;
+            return null;
 
         }catch (SQLiteCantOpenDatabaseException e){
             e.printStackTrace();
-            ids.add(new Transaction("","","","","", ""));
-            return ids;
+            return null;
         }
     }
     public long insertTransaction(String message, String send){
@@ -129,6 +124,28 @@ public class DBHelper extends SQLiteOpenHelper {
         contentValues.put("message", message);
         contentValues.put("send", send);
         return db.insert("transactions", null, contentValues);
+    }
+    public String getDiffDateTransaction(String folio){
+        String difference = null;
+        try{
+            SQLiteDatabase db = this.getReadableDatabase();
+            Cursor res =  db.rawQuery(
+                    "select ((julianday(time('now'))-julianday(time(date_time)))*86400.0) AS difference from transactions WHERE id ="+folio, null);
+            if (res != null) {
+                if (res.moveToFirst()) {
+                    do {
+                        difference = res.getString(res.getColumnIndex("difference"));
+                    } while (res.moveToNext());
+                    res.close();
+                }
+            }
+            return difference;
+        }catch (SQLiteCantOpenDatabaseException e){
+            e.printStackTrace();
+            return difference;
+        }
+
+
     }
     public boolean updateTransaction(String id, String status, String response,String toSend){
         SQLiteDatabase db = this.getWritableDatabase();
@@ -155,29 +172,25 @@ public class DBHelper extends SQLiteOpenHelper {
         SQLiteDatabase db = this.getReadableDatabase();
         return (int) DatabaseUtils.queryNumEntries(db, LASTID_TABLE_NAME);
     }
-    public List getData() throws SQLiteCantOpenDatabaseException{
-        List ids = new ArrayList();
+    public ArrayList getData() throws SQLiteCantOpenDatabaseException{
+        ArrayList<String> ids = new ArrayList<>();
         try{
             SQLiteDatabase db = this.getReadableDatabase();
             Cursor res =  db.rawQuery("select * from lastid", null);
             if (res != null) {
-                // move res to first row
                 if (res.moveToFirst()) {
                     do {
                         String id = res.getString(res.getColumnIndex("storeid"));
                         ids.add(id);
                     } while (res.moveToNext());
-                }else{
-                    ids.add("-1");
+                    res.close();
+                    return ids;
                 }
-            }else{
-                ids.add("-1");
             }
+            ids.add("-1");
             return ids;
-
         }catch (SQLiteCantOpenDatabaseException e){
             e.printStackTrace();
-            ids.add("-1");
             return ids;
         }
 

@@ -49,6 +49,7 @@ public class Receive extends IntentService{
     private void Listen(Shell shell) throws TimeoutException, BrokenBusyboxException {
 
         contentResolver = getContentResolver();
+        this.ListenSyncContacts++;
 
         Random rand = new Random();
         int time = RANDOM_TIMES[rand.nextInt(3)];
@@ -65,7 +66,6 @@ public class Receive extends IntentService{
             WContacts wContacts  = new WContacts(getApplicationContext());
             wContacts.Sync();
         }
-        this.ListenSyncContacts++;
 
         try {
             //Tiempo entre cada receive

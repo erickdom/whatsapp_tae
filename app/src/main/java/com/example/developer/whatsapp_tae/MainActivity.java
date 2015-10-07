@@ -13,7 +13,6 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
 import android.widget.TextView;
 
 import org.sufficientlysecure.rootcommands.RootCommands;
@@ -100,7 +99,8 @@ public class MainActivity extends Activity {
         public ViewHolder onCreateViewHolder(ViewGroup viewGroup, int i) {
             LayoutInflater inflater = LayoutInflater.from(viewGroup.getContext());
             View view = inflater.inflate(R.layout.item_layout, null);
-            ViewHolder viewHolder = new ViewHolder(view, new ViewHolder.IMyViewHolderClicks(){
+
+            return new ViewHolder(view, new ViewHolder.IMyViewHolderClicks(){
 
                 @Override
                 public void onFolio(View caller, ViewHolder holder) {
@@ -113,8 +113,6 @@ public class MainActivity extends Activity {
                     context.startActivity(detalleIntent);
                 }
             });
-
-            return viewHolder;
         }
 
         @Override
