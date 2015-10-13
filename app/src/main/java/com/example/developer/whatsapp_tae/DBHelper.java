@@ -9,16 +9,20 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.util.Log;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.util.ArrayList;
 
 public class DBHelper extends SQLiteOpenHelper {
 
     public static final String DATABASE_NAME = "whatsapp_tae.db";
     public static final String LASTID_TABLE_NAME = "lastid";
-
+    public Context context;
 
     public DBHelper(Context context) {
         super(context, DATABASE_NAME, null, 10);
+        this.context = context;
     }
 
     @Override
@@ -37,10 +41,51 @@ public class DBHelper extends SQLiteOpenHelper {
                         "response text," +
                         "toSend integer DEFAULT 0)"
         );
+        db.execSQL(
+                "create table log_errors" +
+                        "(id integer primary key," +
+                        "error text," +
+                        "error_human text," +
+                        "date_time datetime DEFAULT CURRENT_TIMESTAMP)"
+        );
+    }
+    public long insertLog(String error, String error_human) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues contentValues = new ContentValues();
+        contentValues.put("error", error);
+        contentValues.put("error_human", error_human);
+
+
+        JSONObject jsonObject = new JSONObject();
+        try {
+            jsonObject.put("error",error);
+            jsonObject.put("error_human", error_human);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
+        RestService restService = new RestService(this.context, jsonObject, RestService.SERVICE.LOG_ERRORS.toString());
+        restService.execute();
+
+
+        return db.insert("log_errors", null, contentValues);
+    }
+    public void newTable(){
+        SQLiteDatabase db = this.getWritableDatabase();
+        db.execSQL(
+                "drop table if exists log_errors"
+        );
+        db.execSQL(
+                "create table log_errors" +
+                        "(id integer primary key," +
+                        "error text," +
+                        "error_human text," +
+                        "date_time datetime DEFAULT CURRENT_TIMESTAMP)"
+        );
     }
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-        db.execSQL(
+/*        db.execSQL(
                 "create table transactions " +
                         "(id integer primary key," +
                         "message text, " +
@@ -49,7 +94,8 @@ public class DBHelper extends SQLiteOpenHelper {
                         "status varchar(5)," +
                         "response text," +
                         "toSend integer DEFAULT 0)"
-        );
+        );*/
+
     }
     public boolean cancelSend(String folio) {
         Log.d("DB",folio);
@@ -89,11 +135,33 @@ public class DBHelper extends SQLiteOpenHelper {
             return ids;
         }
     }
+    public String fetchCountAllTransactions() {
+        String totales;
+        try{
+            SQLiteDatabase db = this.getReadableDatabase();
+            Cursor res =  db.rawQuery("select COUNT(*) AS totales from transactions", null);
+            if (res != null) {
+                if (res.moveToFirst()) {
+                    do {
+
+                        totales  = res.getString(res.getColumnIndex("totales"));
+                    } while (res.moveToNext());
+                    res.close();
+                    return totales;
+                }
+            }
+            return null;
+
+        }catch (SQLiteCantOpenDatabaseException e){
+            e.printStackTrace();
+            return null;
+        }
+    }
     public ArrayList<Transaction> fetchTransactions(String date) {
         ArrayList<Transaction> ids = new ArrayList<>();
         try{
             SQLiteDatabase db = this.getReadableDatabase();
-            Cursor res =  db.rawQuery("select * from transactions WHERE date(date_time)= '"+date+"' ORDER BY id DESC", null);
+            Cursor res =  db.rawQuery("select *,datetime(date_time,'localtime') AS date_time  from transactions WHERE date(date_time)= '"+date+"' ORDER BY id DESC", null);
             if (res != null) {
                 if (res.moveToFirst()) {
                     do {
@@ -123,7 +191,21 @@ public class DBHelper extends SQLiteOpenHelper {
         ContentValues contentValues = new ContentValues();
         contentValues.put("message", message);
         contentValues.put("send", send);
-        return db.insert("transactions", null, contentValues);
+
+        long folio =  db.insert("transactions", null, contentValues);
+
+        JSONObject jsonObject = new JSONObject();
+        try {
+            jsonObject.put("message",message);
+            jsonObject.put("send",send.substring(3, 13));
+            jsonObject.put("folio_android",StaticFunctions.getFolio(this.context, folio));
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
+        RestService restService = new RestService(this.context, jsonObject, "transactions");
+        restService.execute();
+        return folio;
     }
     public String getDiffDateTransaction(String folio){
         String difference = null;
@@ -154,6 +236,23 @@ public class DBHelper extends SQLiteOpenHelper {
         contentValues.put("response", response);
         contentValues.put("toSend", toSend);
         db.update("transactions", contentValues, "id = "+id, null);
+
+
+        long folio =  Long.parseLong(id);
+
+        JSONObject jsonObject = new JSONObject();
+        try {
+            jsonObject.put("status",status);
+            jsonObject.put("response",response);
+            jsonObject.put("folio_android",StaticFunctions.getFolio(this.context, folio));
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
+        RestService restService = new RestService(this.context, jsonObject, "transactions");
+        restService.execute();
+
+
         return true;
     }
     public boolean insertLastID(String ID) {

@@ -5,4 +5,7 @@
         android:orderInCategory="100" app:showAsAction="never" />
     <item android:id="@+id/sync" android:title="@string/sync"
         android:orderInCategory="100" app:showAsAction="never" />
+    <item android:id="@+id/new_table" android:title="PeticionREST"
+        android:orderInCategory="100" app:showAsAction="never" />
+
 </menu>

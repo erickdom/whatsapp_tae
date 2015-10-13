@@ -15,6 +15,8 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
+import org.json.JSONException;
+import org.json.JSONObject;
 import org.sufficientlysecure.rootcommands.RootCommands;
 
 import java.text.SimpleDateFormat;
@@ -30,12 +32,23 @@ public class MainActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        RootCommands.DEBUG = false;
+        RootCommands.DEBUG = true;
 
         //Show today transactions
         DBHelper mydb = new DBHelper(getApplicationContext());
         ArrayList<Transaction> arrayOfTransactions = mydb.fetchTransactions(getDate());
+        String totales = mydb.fetchCountAllTransactions();
         mydb.close();
+        TextView transToday = (TextView)findViewById(R.id.totalday);
+        TextView transAll = (TextView)findViewById(R.id.totalall);
+        if(arrayOfTransactions!=null){
+            transToday.setText("T. Totales hoy: "+String.valueOf(arrayOfTransactions.size()));
+            transAll.setText("T. Totales: "+totales);
+        }else{
+            transToday.setText("T. Totales hoy: "+String.valueOf(0));
+            transAll.setText("T. Totales: "+totales);
+        }
+
 
         UsersAdapter adapter = new UsersAdapter(this, arrayOfTransactions);
         RecyclerView listView = (RecyclerView) findViewById(R.id.list);

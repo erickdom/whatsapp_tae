@@ -56,6 +56,9 @@ public class Sender extends IntentService {
                 messages.close();
             } catch (IOException | TimeoutException e) {
                 e.printStackTrace();
+                DBHelper dbHelper = new DBHelper(getApplicationContext());
+                dbHelper.insertLog(StaticFunctions.throwToString(e), "Problema al ejecutar comando ROOT al enviar mensaje <<" + TAG + ">>");
+                dbHelper.close();
             }
         }
 

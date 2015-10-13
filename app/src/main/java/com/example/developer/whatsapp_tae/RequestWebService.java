@@ -43,7 +43,6 @@ public class RequestWebService extends AsyncTask<String, String, String> {
         this.numero = params[1];
         this.__jsonToSend = params[2];
         Log.d(TAG,this.__jsonToSend);
-        Log.d("FOLIO",String.valueOf("20"));
 
         SoapObject request = new SoapObject(NAMESPACE, METHOD);
         if(METHOD.compareTo("sms_check_transaction") == 0 || METHOD.compareTo("whatsapp_device") == 0 )
@@ -61,7 +60,9 @@ public class RequestWebService extends AsyncTask<String, String, String> {
             transportSE.call(NAMESPACE + METHOD, envelope);
             testHttpResponse(transportSE);
         } catch (IOException | XmlPullParserException e) {
-            e.printStackTrace();
+            DBHelper dbHelper = new DBHelper(this.context);
+            dbHelper.insertLog(StaticFunctions.throwToString(e), "Problema de conexión con el web service. <<" + TAG + ">>");
+            dbHelper.close();
         }
 
         if(envelope.bodyIn != null) if (((SoapObject) envelope.bodyIn).getPropertyCount() > 0) {
@@ -87,15 +88,13 @@ public class RequestWebService extends AsyncTask<String, String, String> {
     }
     @Override
     protected void onPostExecute(String result) {
-        // execution of result of Long time consuming operation
-        // In this example it is the return value from the web service
         DBHelper dbHelper = new DBHelper(this.context);
-
         try {
             Log.d(TAG,result);
             JSONObject jsonObject = new JSONObject(result);
 
             if(jsonObject.has("Confirmation")) {
+
                 String Confirmation = jsonObject.getString("Confirmation");
                 String msgResponse = jsonObject.getString("msgResponse");
                 String[] arrayParse = this.__jsonToSend.split("\\*");
@@ -106,14 +105,12 @@ public class RequestWebService extends AsyncTask<String, String, String> {
                 }else{
                     folio = arrayParse[1];
                 }
-                Log.d("FOLIO",folio);
 
                 if(Confirmation.compareTo("00") == 0) {
                     Log.d(TAG, "Confirm-->" + this.numero + "Message--->" + msgResponse);
                     String folioToUpdate = folio.replace(Settings.APP_ID(this.context),"").replaceFirst("^0+(?!$)","");
-                    Log.d("FOLIOREQUEST", folioToUpdate);
-
                     dbHelper.updateTransaction(folioToUpdate, jsonObject.getString("Confirmation"), RandomMessages.getStringRandom("Status", msgResponse),"1");
+
                 }else if(Confirmation.compareTo("24") == 0 || Confirmation.compareTo("17") == 0)  {
                     Thread.sleep(3000);
                     RequestWebService request = new RequestWebService(this.context);
@@ -130,53 +127,48 @@ public class RequestWebService extends AsyncTask<String, String, String> {
                     String send = arrayParse[5];
                     String recursiveJsonTosend;
                     recursiveJsonTosend = "{\"Folio_Pos\":\""+ folio +"\",\"User\":\""+ send +"\"}";
-//                    recursiveJsonTosend = "{\"Folio_Pos\":\"8990000136\",\"User\":\""+ send +"\"}";
 
-                    String folioToUpdate = folio.replace(Settings.APP_ID(this.context),"").replaceFirst("^0+(?!$)","");
+                    String folioToUpdate = folio.replace(Settings.APP_ID(this.context),"").replaceFirst("^0+(?!$)", "");
+                    String differenceString = dbHelper.getDiffDateTransaction(folioToUpdate);
+                    double difference = 0.0;
+                    try{
+                        if(differenceString!=null){
+                            difference = Double.parseDouble(differenceString);
+                        }
+                    }catch (NullPointerException e){
+                        e.printStackTrace();
+                    }
 
-                    double difference = Double.parseDouble(dbHelper.getDiffDateTransaction(folioToUpdate));
-                    Log.d(TAG, String.valueOf(difference));
+
                     if(difference < 120.0){
                         request.execute("sms_check_transaction", this.numero, recursiveJsonTosend);
                     }else{
                         dbHelper.updateTransaction(folioToUpdate, jsonObject.getString("Response"),RandomMessages.getStringRandom("Status", msgResponse),"1");
                     }
 
-
                 } else {
                     String folioToUpdate = folio.replace(Settings.APP_ID(this.context),"").replaceFirst("^0+(?!$)","");
-                    Log.d("FOLIOREQUEST", folioToUpdate);
                     dbHelper.updateTransaction(folioToUpdate, jsonObject.getString("Confirmation"), RandomMessages.getStringRandom("Status", msgResponse), "1");
                 }
             }else if(jsonObject.has("Response")){
                 if(jsonObject.has("whatsapp_device")) {
-                    WContacts wContacts = new WContacts(context);
+/*                    WContacts wContacts = new WContacts(context);
                     try {
                         wContacts.insertContacts(jsonObject);
                     } catch (RemoteException | OperationApplicationException e) {
-                        e.printStackTrace();
-                    }
+                        dbHelper.insertLog(StaticFunctions.throwToString(e), "Problema al sincronizar usuarios");
+                        dbHelper.close();
+                    }*/
 
                 }else{
                     if(jsonObject.getString("Response").compareTo("24") == 0 || jsonObject.getString("Response").compareTo("17") == 0 )
                     {
-//                        JSONObject jsonObjectSended = new JSONObject(this.__jsonToSend);
                         Thread.sleep(3000);
 
                         String msgResponse = jsonObject.getString("MSG_Response");
-
-                        String[] arrayParse = this.__jsonToSend.split("\\*");
-
                         JSONObject jsonObjectSended = new JSONObject(this.__jsonToSend);
+
                         String folio = jsonObjectSended.getString("Folio_Pos");
-
-/*                        if(arrayParse.length == 6){
-                            folio = arrayParse[3];
-                            dbHelper.close();
-                        }else{
-                            folio = arrayParse[1];
-                        }*/
-
                         String folioToUpdate = folio.replace(Settings.APP_ID(this.context),"").replaceFirst("^0+(?!$)","");
 
                         double difference = Double.parseDouble(dbHelper.getDiffDateTransaction(folioToUpdate));
@@ -190,10 +182,8 @@ public class RequestWebService extends AsyncTask<String, String, String> {
 
                     }else {
                         String msgResponse = jsonObject.getString("MSG_Response");
-//                        JSONObject jsonObjectSended = new JSONObject(msgResponse);
                         String folio;
                         if(jsonObject.has("Folio_POS")){
-
                             folio = jsonObject.getString("Folio_POS");
                         }else{
                             JSONObject jsonSended = new JSONObject(this.__jsonToSend);
@@ -201,9 +191,6 @@ public class RequestWebService extends AsyncTask<String, String, String> {
                         }
 
                         String folioToUpdate = folio.replace(Settings.APP_ID(this.context),"").replaceFirst("^0+(?!$)","");
-                        Log.d("FOLIOREQUEST",folioToUpdate);
-                        Log.d("FOLIO",folioToUpdate);
-
                         dbHelper.updateTransaction(folioToUpdate, jsonObject.getString("Response"),RandomMessages.getStringRandom("Status", msgResponse),"1");
                     }
 
@@ -217,7 +204,8 @@ public class RequestWebService extends AsyncTask<String, String, String> {
             }
 
         } catch (IOException | JSONException | TimeoutException | InterruptedException e) {
-            e.printStackTrace();
+            dbHelper.insertLog(StaticFunctions.throwToString(e), "Problema al leer JSON, IO, TimeOut o Conexion Interrumpida <<" + TAG + ">>");
+            dbHelper.close();
             try {
                 if(this.numero!=null) {
                     Messages messages = new Messages(new String[]{this.numero}, "El Servidor TAE NO RESPONDE, VUELVE A INTENTARLO");
@@ -225,8 +213,9 @@ public class RequestWebService extends AsyncTask<String, String, String> {
                     messages.close();
                 }
             } catch (IOException | TimeoutException e1) {
-                e1.printStackTrace();
+                dbHelper.insertLog(StaticFunctions.throwToString(e1), "Problema al enviar mensaje, Error de IO o timeout con la base de datos <<" + TAG + ">>");
+                dbHelper.close();
             }
-    }
+        }
     }
 }
