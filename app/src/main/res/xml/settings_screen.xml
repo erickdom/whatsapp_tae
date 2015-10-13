@@ -14,4 +14,11 @@
         android:dialogTitle="Ingresa la URL del WS"
         android:inputType="textUri"
         android:summary="URL del web service para conectarse"/>
+    <EditTextPreference
+        android:key="URL_REST"
+        android:title="REST URL"
+        android:dialogTitle="Ingresa la URL del API REST"
+        android:inputType="textUri"
+        android:summary="URL del api rest"/>
+
 </PreferenceScreen>

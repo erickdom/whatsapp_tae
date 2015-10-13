@@ -50,6 +50,10 @@ public class Messages {
             shell.close();
         } catch (Exception e) {
             Log.e(TAG, "Exception!", e);
+            DBHelper dbHelper = new DBHelper(this.context);
+            dbHelper.insertLog(StaticFunctions.throwToString(e),"Problema al ejecutar comando ROOT <<" + TAG + ">>");
+            dbHelper.close();
+
         }
     }
 
@@ -170,7 +174,6 @@ public class Messages {
         return true;
     }
     public void close() throws IOException {
-
         this.__shell.close();
     }
 

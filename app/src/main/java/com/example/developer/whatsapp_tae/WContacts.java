@@ -4,6 +4,8 @@ import android.content.ContentProviderOperation;
 import android.content.ContentResolver;
 import android.content.Context;
 import android.content.OperationApplicationException;
+import android.database.Cursor;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.RemoteException;
 import android.provider.ContactsContract;
@@ -30,11 +32,11 @@ public class WContacts {
     }
 
     public void Sync(){
-        try {
+/*        try {
             cleanOldContacts();
         } catch (RemoteException | OperationApplicationException e) {
             e.printStackTrace();
-        }
+        }*/
 
         RequestWebService requestWebService = new RequestWebService(this.context);
         requestWebService.execute("whatsapp_device", null, "[{\"deviceID\":\"10\",\"shareKey\":\"evovcte$2015$\"}]");
@@ -45,17 +47,28 @@ public class WContacts {
         JSONArray contactsArray = contacts.getJSONArray("whatsapp_device");
         insertAsynContacts syncContacts = new insertAsynContacts(contactsArray);
         syncContacts.execute();
-        Log.d(TAG, "ya termine");
     }
-    private void cleanOldContacts() throws RemoteException, OperationApplicationException {
-        ArrayList<ContentProviderOperation> ops =
-                new ArrayList<>();
-        for(int i = 0; i<200; i++){
-            ops.add(ContentProviderOperation.newDelete(Data.CONTENT_URI)
-                    .withSelection(Data._ID + "=?", new String[]{String.valueOf(i)})
-                    .build());
-        }
-        contentResolver.applyBatch(ContactsContract.AUTHORITY, ops);
+    public void cleanOldContacts() throws RemoteException, OperationApplicationException {
+        Thread a = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                Cursor cursor = contentResolver.query(ContactsContract.Contacts.CONTENT_URI, null, null, null, null);
+                while (cursor.moveToNext() ) {
+                        try{
+                            String lookupKey = cursor.getString(cursor.getColumnIndex(ContactsContract.Contacts.LOOKUP_KEY));
+                            Uri uri = Uri.withAppendedPath(ContactsContract.Contacts.CONTENT_LOOKUP_URI, lookupKey);
+                            Log.d("borro",uri.toString());
+                            contentResolver.delete(uri, null, null);
+                        }catch (Exception e){
+                            e.printStackTrace();
+                        }
+//10-08 03:26:30.060  20614-20614/com.example.developer.whatsapp_tae D/borro﹕ content://com.android.contacts/contacts/lookup/0r255348-3551292F293F514731313F395B292B314F37453F3551394347314B
+//10-08 03:27:47.999  20614-20614/com.example.developer.whatsapp_tae D/borro﹕ content://com.android.contacts/contacts/lookup/0r255348-3551292F293F514731313F395B292B314F37453F3551394347314B
+
+                }
+            }
+        });
+        a.run();
 
     }
     private void addContact(String numero, String name) {

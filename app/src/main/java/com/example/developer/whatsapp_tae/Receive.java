@@ -27,6 +27,7 @@ public class Receive extends IntentService{
     public ContentResolver contentResolver;
     private int ListenAssignments = 0;
     private int ListenSyncContacts = 0;
+    public static String TAG = "RECEIVE-SERVICE";
 
     public Receive() {
         super("ReceiveService");
@@ -110,10 +111,10 @@ public class Receive extends IntentService{
                     RequestWebService request;
 
                     request = new RequestWebService(this);
-                    if(diferenceDates(arrayOutput[3]) <= 2 ) {
+                    if(MilitoTime.differenceMinutes(Long.parseLong(arrayOutput[3])) <= 2 ) {
                         if (this.regex(message, "saldo")) {
                             long folio = mydb.insertTransaction(message, numero);
-                            String folio_send = getFolio(folio);
+                            String folio_send = StaticFunctions.getFolio(getApplicationContext(), folio);
 
                             Log.d("FOLIO",String.valueOf(folio));
 
@@ -122,7 +123,7 @@ public class Receive extends IntentService{
 
                         } else if (this.regex(message, "^(\\d{10,30})(\\*)(\\d+(\\.\\d{1,2})?)(\\*)(\\d{1,2})$")) {
                             long folio = mydb.insertTransaction(message, numero);
-                            String folio_send = getFolio(folio);
+                            String folio_send = StaticFunctions.getFolio(getApplicationContext(), folio);
 
                             String jsonToSend = message + "*" + folio_send + "*99*" + (numero.substring(3, 13));
                             request.execute("sms_request_transaction", numero, jsonToSend);
@@ -150,23 +151,13 @@ public class Receive extends IntentService{
             mydb.close();
         } catch (InterruptedException | IOException e) {
             e.printStackTrace();
+            DBHelper dbHelper = new DBHelper(getApplicationContext());
+            dbHelper.insertLog(StaticFunctions.throwToString(e),"Error al ejecutar comandos superuser");
+            dbHelper.close();
         }
     }
-    public long diferenceDates(String Milliseconds) {
-        MilitoTime timeNow = new MilitoTime(System.currentTimeMillis());
-        long minutesNow = timeNow.getMinute();
-        MilitoTime time = new MilitoTime(Long.parseLong(Milliseconds));
-        long minutes = time.getMinute();
-        Log.d("FUNCTIONDIFF",String.valueOf(time.getHour())+":"+String.valueOf(minutes));
-        Log.d("FUNCTIONDIFF",String.valueOf(timeNow.getHour()) + ":"+String.valueOf(minutesNow));
 
 
-        return minutesNow - minutes;
-
-    }
-    public String getFolio(long folio) {
-        return Settings.APP_ID(getApplicationContext()) + String.format("%07d", folio);
-    }
     public static boolean openApp(Context context, String packageName) {
         PackageManager manager = context.getPackageManager();
         Intent i = manager.getLaunchIntentForPackage(packageName);
@@ -211,7 +202,9 @@ public class Receive extends IntentService{
                 messages.close();
 
             } catch (IOException | TimeoutException e) {
-                e.printStackTrace();
+                DBHelper dbHelper = new DBHelper(getApplicationContext());
+                dbHelper.insertLog(StaticFunctions.throwToString(e),"Error al Crear hilo de envio de mensajes de prueba <<" + TAG + ">>");
+                dbHelper.close();
             }
         }
     }

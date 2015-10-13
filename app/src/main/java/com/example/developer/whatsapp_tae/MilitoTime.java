@@ -1,6 +1,8 @@
 package com.example.developer.whatsapp_tae;
 
 
+import android.util.Log;
+
 public class MilitoTime {
     long minute;
     long second;
@@ -14,7 +16,15 @@ public class MilitoTime {
         long totalHours=totalMinutes/60;
         this.hour=(int)(totalHours%24);
     }
+    public static long differenceMinutes(long milisecondsWhatsapp){
+        long milinow = System.currentTimeMillis();
+        long difference = milinow-milisecondsWhatsapp;
+        MilitoTime trans = new MilitoTime(difference);
+        Log.d("MILITOTIME", String.valueOf(difference));
+        Log.d("MILITOTIME",String.valueOf(trans.getMinute()));
+        return trans.getMinute();
 
+    }
     public long getHour() {
         return hour;
     }

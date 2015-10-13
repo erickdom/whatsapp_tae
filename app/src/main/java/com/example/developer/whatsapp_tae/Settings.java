@@ -8,7 +8,10 @@ public  class Settings {
 
     public static final String NAMESPACE = "http://www.ventamovil.com.mx/ws/";
     public static final String XML_VERSSION = "<?xml version=\"1.0\" encoding= \"UTF-8\" ?>";
-
+    static public String URL_REST(Context context) {
+        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(context);
+        return preferences.getString("URL_REST","http://localhost/transactions/");
+    }
     static public String APP_ID(Context context) {
         SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(context);
         return preferences.getString("APPID","801");
