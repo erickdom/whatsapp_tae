@@ -42,7 +42,9 @@ public class RequestWebService extends AsyncTask<String, String, String> {
         String METHOD = params[0];
         this.numero = params[1];
         this.__jsonToSend = params[2];
-        Log.d(TAG,this.__jsonToSend);
+        Log.i(TAG,StaticFunctions.timeElapsed(this.numero,"doInBack"));
+
+        Log.d(TAG, this.__jsonToSend);
 
         SoapObject request = new SoapObject(NAMESPACE, METHOD);
         if(METHOD.compareTo("sms_check_transaction") == 0 || METHOD.compareTo("whatsapp_device") == 0 )
@@ -51,7 +53,7 @@ public class RequestWebService extends AsyncTask<String, String, String> {
             request.addProperty("sgateway", this.__jsonToSend);
         }
         SoapSerializationEnvelope envelope = getSoapSerializationEnvelope(request);
-        HttpTransportSE transportSE = new HttpTransportSE(Settings.URL(this.context),30000);
+        HttpTransportSE transportSE = new HttpTransportSE(Settings.URL(this.context),20000);
         transportSE.debug = true;
         transportSE.setXmlVersionTag(Settings.XML_VERSSION);
         try {
@@ -94,6 +96,7 @@ public class RequestWebService extends AsyncTask<String, String, String> {
     @Override
     protected void onPostExecute(String result) {
         DBHelper dbHelper = new DBHelper(this.context);
+        Log.i(TAG,StaticFunctions.timeElapsed(this.numero,"onPOSTExecute"));
         try {
             Log.d(TAG,result);
             JSONObject jsonObject = new JSONObject(result);
@@ -197,7 +200,7 @@ public class RequestWebService extends AsyncTask<String, String, String> {
                             folio = jsonSended.getString("Folio_Pos");
                         }
 
-                        String folio_casiLimpio = folio.replace(Settings.APP_ID(this.context),"");
+                        String folio_casiLimpio = folio.replace(Settings.APP_ID(this.context), "");
                         String folioToUpdate = folio_casiLimpio.replaceFirst("^0+(?!$)","");
 
                         dbHelper.updateTransaction(folioToUpdate, jsonObject.getString("Response"),RandomMessages.getStringRandom("Status", msgResponse, folio_casiLimpio),"1");

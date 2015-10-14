@@ -7,6 +7,7 @@ import java.io.StringWriter;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Locale;
 
 
 public class StaticFunctions {
@@ -22,8 +23,11 @@ public class StaticFunctions {
     }
     public static String getDate() {
 
-        DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
+        DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss", Locale.getDefault());
         Date date = new Date();
         return dateFormat.format(date);
+    }
+    public static String timeElapsed(String message, String site) {
+        return String.format("WHERE-->> %s | MENSAJE-->>  %s | TIME ELAPSED -->> %s", site, message, getDate());
     }
 }

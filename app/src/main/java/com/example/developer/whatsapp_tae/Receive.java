@@ -56,7 +56,7 @@ public class Receive extends IntentService{
         int time = RANDOM_TIMES[rand.nextInt(3)];
         this.ListenAssignments++;
         //each x open whatsapp thats to change status to online
-        if(this.ListenAssignments == 10)
+        if(this.ListenAssignments == 8)
         {
             openApp(getApplicationContext(),"com.whatsapp");
             this.ListenAssignments = 0;
@@ -117,6 +117,7 @@ public class Receive extends IntentService{
                             String folio_send = StaticFunctions.getFolio(getApplicationContext(), folio);
 
                             Log.d("FOLIO",String.valueOf(folio));
+                            Log.i(TAG,StaticFunctions.timeElapsed(message,"RECEIVE"));
 
                             String jsonToSend = message + "*" + folio_send + "*99*" + (numero.substring(3, 13));
                             request.execute("sms_resume", numero, jsonToSend);
@@ -125,17 +126,13 @@ public class Receive extends IntentService{
                             long folio = mydb.insertTransaction(message, numero);
                             String folio_send = StaticFunctions.getFolio(getApplicationContext(), folio);
 
+                            Log.i(TAG,StaticFunctions.timeElapsed(message,"RECEIVE"));
+
                             String jsonToSend = message + "*" + folio_send + "*99*" + (numero.substring(3, 13));
                             request.execute("sms_request_transaction", numero, jsonToSend);
                         } else {
-                            if (message.toLowerCase().compareTo("marco") == 0) {
-                                HiloMensajes nuevomensaje = new HiloMensajes(message.toLowerCase(), numero);
-                                nuevomensaje.run();
-                            } else {
-                                HiloMensajes nuevomensaje = new HiloMensajes(message, numero);
-                                nuevomensaje.run();
-                            }
-
+                            HiloMensajes nuevomensaje = new HiloMensajes(message.toLowerCase(), numero);
+                            nuevomensaje.run();
                         }
                     }else{
                         HiloMensajes nuevomensaje = new HiloMensajes("1", numero);

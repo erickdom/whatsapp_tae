@@ -167,6 +167,7 @@ public class Messages {
                 Log.d(TAG, "CANCELED>>>>" + transaction.getFolio());
                 mydb.cancelSend(transaction.getFolio());
                 android.util.Log.d("FOLIO", transaction.getFolio());
+                android.util.Log.i(TAG, StaticFunctions.timeElapsed(transaction.getNumero(), "SENDED"));
 
             }
             Thread.sleep(1000);
