@@ -52,7 +52,7 @@ public class Messages {
             Log.e(TAG, "Exception!", e);
             DBHelper dbHelper = DBHelper.getInstance(this.context);
             dbHelper.insertLog(StaticFunctions.throwToString(e),"Problema al ejecutar comando ROOT <<" + TAG + ">>");
-            dbHelper.close();
+//            dbHelper.close();
 
         }
     }

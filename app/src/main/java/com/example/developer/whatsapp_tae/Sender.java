@@ -36,7 +36,7 @@ public class Sender extends IntentService {
         DBHelper mydb = DBHelper.getInstance(getApplicationContext());
         ArrayList<Transaction> arrayOfTransactions = mydb.fetchTransactionsToSend();
         Log.d(TAG, String.valueOf(arrayOfTransactions.size()));
-        mydb.close();
+//        mydb.close();
 
         if(arrayOfTransactions.size() > 0){
             Log.d(TAG, arrayOfTransactions.get(0).getFolio());

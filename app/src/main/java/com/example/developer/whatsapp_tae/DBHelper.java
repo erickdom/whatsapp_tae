@@ -120,7 +120,7 @@ public class DBHelper extends SQLiteOpenHelper {
         try{
             SQLiteDatabase db = this.getReadableDatabase();
             Cursor res =  db.rawQuery("select * from transactions WHERE toSend=1", null);
-            if (res != null) {
+            if (res != null && !res.isClosed()) {
                 if (res.moveToFirst()) {
                     do {
 
@@ -150,7 +150,7 @@ public class DBHelper extends SQLiteOpenHelper {
         try{
             SQLiteDatabase db = this.getReadableDatabase();
             Cursor res =  db.rawQuery("select COUNT(*) AS totales from transactions", null);
-            if (res != null) {
+            if (res != null && !res.isClosed()) {
                 if (res.moveToFirst()) {
                     do {
 
@@ -172,7 +172,7 @@ public class DBHelper extends SQLiteOpenHelper {
         try{
             SQLiteDatabase db = this.getReadableDatabase();
             Cursor res =  db.rawQuery("select *,datetime(date_time,'localtime') AS date_time  from transactions WHERE date(date_time)= '"+date+"' ORDER BY id DESC", null);
-            if (res != null) {
+            if (res != null && !res.isClosed()) {
                 if (res.moveToFirst()) {
                     do {
                         Transaction transaction = new Transaction(
@@ -223,7 +223,7 @@ public class DBHelper extends SQLiteOpenHelper {
             SQLiteDatabase db = this.getReadableDatabase();
             Cursor res =  db.rawQuery(
                     "select ((julianday(time('now'))-julianday(time(date_time)))*86400.0) AS difference from transactions WHERE id ="+folio, null);
-            if (res != null) {
+            if (res != null && !res.isClosed()) {
                 if (res.moveToFirst()) {
                     do {
                         difference = res.getString(res.getColumnIndex("difference"));
@@ -286,7 +286,7 @@ public class DBHelper extends SQLiteOpenHelper {
         try{
             SQLiteDatabase db = this.getReadableDatabase();
             Cursor res =  db.rawQuery("select * from lastid", null);
-            if (res != null) {
+            if (res != null && !res.isClosed()) {
                 if (res.moveToFirst()) {
                     do {
                         String id = res.getString(res.getColumnIndex("storeid"));
