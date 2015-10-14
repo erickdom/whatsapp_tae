@@ -23,7 +23,10 @@ public class MilitoTime {
         Log.d("MILITOTIME", String.valueOf(difference));
         Log.d("MILITOTIME",String.valueOf(trans.getMinute()));
         return trans.getMinute();
-
+    }
+    public static String toString(long milisnow) {
+        MilitoTime trans = new MilitoTime(milisnow);
+        return String.format(" %d:%d:%d", trans.getHour(),trans.getMinute(),trans.getSecond());
     }
     public long getHour() {
         return hour;

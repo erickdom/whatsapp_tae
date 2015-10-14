@@ -50,9 +50,9 @@ public class Messages {
             shell.close();
         } catch (Exception e) {
             Log.e(TAG, "Exception!", e);
-            DBHelper dbHelper = new DBHelper(this.context);
+            DBHelper dbHelper = DBHelper.getInstance(this.context);
             dbHelper.insertLog(StaticFunctions.throwToString(e),"Problema al ejecutar comando ROOT <<" + TAG + ">>");
-            dbHelper.close();
+//            dbHelper.close();
 
         }
     }
@@ -112,7 +112,7 @@ public class Messages {
         //Inicia la vida loca :v
 
         for (Transaction transaction : transactionsToSend) {
-            DBHelper mydb = new DBHelper(this.context);
+            DBHelper mydb = DBHelper.getInstance(this.context);
             String str3;
             long l1;
             long l2;
@@ -167,6 +167,7 @@ public class Messages {
                 Log.d(TAG, "CANCELED>>>>" + transaction.getFolio());
                 mydb.cancelSend(transaction.getFolio());
                 android.util.Log.d("FOLIO", transaction.getFolio());
+                android.util.Log.i(TAG, StaticFunctions.timeElapsed(transaction.getMessage(), "SENDED"));
 
             }
             Thread.sleep(1000);

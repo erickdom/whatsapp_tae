@@ -23,7 +23,7 @@ import java.util.regex.Pattern;
 
 public class Receive extends IntentService{
 
-    public static final int[] RANDOM_TIMES = new int[] {2000,3000,3500,2500};
+    public static final int[] RANDOM_TIMES = new int[] {3000,4000,4500,3500};
     public ContentResolver contentResolver;
     private int ListenAssignments = 0;
     private int ListenSyncContacts = 0;
@@ -56,7 +56,7 @@ public class Receive extends IntentService{
         int time = RANDOM_TIMES[rand.nextInt(3)];
         this.ListenAssignments++;
         //each x open whatsapp thats to change status to online
-        if(this.ListenAssignments == 10)
+        if(this.ListenAssignments == 8)
         {
             openApp(getApplicationContext(),"com.whatsapp");
             this.ListenAssignments = 0;
@@ -73,7 +73,7 @@ public class Receive extends IntentService{
             Thread.sleep(time);
 
             //Conection to DB
-            DBHelper mydb = new DBHelper(this);
+            DBHelper mydb = DBHelper.getInstance(getApplicationContext());
 
             //scan what is the last id saved
             List ids = mydb.getData();
@@ -117,6 +117,7 @@ public class Receive extends IntentService{
                             String folio_send = StaticFunctions.getFolio(getApplicationContext(), folio);
 
                             Log.d("FOLIO",String.valueOf(folio));
+                            Log.i(TAG,StaticFunctions.timeElapsed(message,"RECEIVE"));
 
                             String jsonToSend = message + "*" + folio_send + "*99*" + (numero.substring(3, 13));
                             request.execute("sms_resume", numero, jsonToSend);
@@ -125,17 +126,13 @@ public class Receive extends IntentService{
                             long folio = mydb.insertTransaction(message, numero);
                             String folio_send = StaticFunctions.getFolio(getApplicationContext(), folio);
 
+                            Log.i(TAG,StaticFunctions.timeElapsed(message,"RECEIVE"));
+
                             String jsonToSend = message + "*" + folio_send + "*99*" + (numero.substring(3, 13));
                             request.execute("sms_request_transaction", numero, jsonToSend);
                         } else {
-                            if (message.toLowerCase().compareTo("marco") == 0) {
-                                HiloMensajes nuevomensaje = new HiloMensajes(message.toLowerCase(), numero);
-                                nuevomensaje.run();
-                            } else {
-                                HiloMensajes nuevomensaje = new HiloMensajes(message, numero);
-                                nuevomensaje.run();
-                            }
-
+                            HiloMensajes nuevomensaje = new HiloMensajes(message.toLowerCase(), numero);
+                            nuevomensaje.run();
                         }
                     }else{
                         HiloMensajes nuevomensaje = new HiloMensajes("1", numero);
@@ -148,12 +145,11 @@ public class Receive extends IntentService{
 
 
             }
-            mydb.close();
         } catch (InterruptedException | IOException e) {
             e.printStackTrace();
-            DBHelper dbHelper = new DBHelper(getApplicationContext());
+            DBHelper dbHelper = DBHelper.getInstance(getApplicationContext());;
             dbHelper.insertLog(StaticFunctions.throwToString(e),"Error al ejecutar comandos superuser");
-            dbHelper.close();
+            
         }
     }
 
@@ -187,24 +183,28 @@ public class Receive extends IntentService{
         @Override
         public void run() {
             try {
-                Messages messages;
+                Messages messages = null;
                 if(this.mje.toLowerCase().compareTo("polo") == 0) {
                     messages = new Messages(new String[]{this.num}, "La clave es marco ;) !!!");
                 }else if(this.mje.toLowerCase().compareTo("marco") == 0) {
                     messages = new Messages(new String[]{this.num}, "Polo");
                 }else if(this.mje.compareTo("1") == 0){
-                    messages = new Messages(new String[]{this.num}, RandomMessages.getStringRandom("Tiempo",""));
+                    messages = new Messages(new String[]{this.num}, RandomMessages.getStringRandom("Tiempo","",null));
 
                 }else{
-                     messages = new Messages(new String[]{this.num}, RandomMessages.getStringRandom("Error",this.mje));
+                    if(this.mje.contains("?")){
+                        messages = new Messages(new String[]{this.num}, RandomMessages.getStringRandom("Error",this.mje,null));
+                    }
                 }
-                messages.sendMessage();
-                messages.close();
+                if(messages != null){
+                    messages.sendMessage();
+                    messages.close();
+                }
 
             } catch (IOException | TimeoutException e) {
-                DBHelper dbHelper = new DBHelper(getApplicationContext());
+                DBHelper dbHelper = DBHelper.getInstance(getApplicationContext());
                 dbHelper.insertLog(StaticFunctions.throwToString(e),"Error al Crear hilo de envio de mensajes de prueba <<" + TAG + ">>");
-                dbHelper.close();
+                
             }
         }
     }

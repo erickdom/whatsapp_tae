@@ -19,10 +19,20 @@ public class DBHelper extends SQLiteOpenHelper {
     public static final String DATABASE_NAME = "whatsapp_tae.db";
     public static final String LASTID_TABLE_NAME = "lastid";
     public Context context;
-
+    private static DBHelper mInstance = null;
     public DBHelper(Context context) {
         super(context, DATABASE_NAME, null, 10);
         this.context = context;
+    }
+    public static synchronized DBHelper getInstance(Context ctx) {
+
+        // Use the application context, which will ensure that you
+        // don't accidentally leak an Activity's context.
+        // See this article for more information: http://bit.ly/6LRzfx
+        if (mInstance == null) {
+            mInstance = new DBHelper(ctx.getApplicationContext());
+        }
+        return mInstance;
     }
 
     @Override
@@ -110,7 +120,7 @@ public class DBHelper extends SQLiteOpenHelper {
         try{
             SQLiteDatabase db = this.getReadableDatabase();
             Cursor res =  db.rawQuery("select * from transactions WHERE toSend=1", null);
-            if (res != null) {
+            if (res != null && !res.isClosed()) {
                 if (res.moveToFirst()) {
                     do {
 
@@ -140,7 +150,7 @@ public class DBHelper extends SQLiteOpenHelper {
         try{
             SQLiteDatabase db = this.getReadableDatabase();
             Cursor res =  db.rawQuery("select COUNT(*) AS totales from transactions", null);
-            if (res != null) {
+            if (res != null && !res.isClosed()) {
                 if (res.moveToFirst()) {
                     do {
 
@@ -162,7 +172,7 @@ public class DBHelper extends SQLiteOpenHelper {
         try{
             SQLiteDatabase db = this.getReadableDatabase();
             Cursor res =  db.rawQuery("select *,datetime(date_time,'localtime') AS date_time  from transactions WHERE date(date_time)= '"+date+"' ORDER BY id DESC", null);
-            if (res != null) {
+            if (res != null && !res.isClosed()) {
                 if (res.moveToFirst()) {
                     do {
                         Transaction transaction = new Transaction(
@@ -203,7 +213,7 @@ public class DBHelper extends SQLiteOpenHelper {
             e.printStackTrace();
         }
 
-        RestService restService = new RestService(this.context, jsonObject, "transactions");
+        RestService restService = new RestService(this.context, jsonObject, RestService.SERVICE.TRANSACTION.toString());
         restService.execute();
         return folio;
     }
@@ -213,7 +223,7 @@ public class DBHelper extends SQLiteOpenHelper {
             SQLiteDatabase db = this.getReadableDatabase();
             Cursor res =  db.rawQuery(
                     "select ((julianday(time('now'))-julianday(time(date_time)))*86400.0) AS difference from transactions WHERE id ="+folio, null);
-            if (res != null) {
+            if (res != null && !res.isClosed()) {
                 if (res.moveToFirst()) {
                     do {
                         difference = res.getString(res.getColumnIndex("difference"));
@@ -249,7 +259,7 @@ public class DBHelper extends SQLiteOpenHelper {
             e.printStackTrace();
         }
 
-        RestService restService = new RestService(this.context, jsonObject, "transactions");
+        RestService restService = new RestService(this.context, jsonObject, RestService.SERVICE.TRANSACTION.toString());
         restService.execute();
 
 
@@ -276,7 +286,7 @@ public class DBHelper extends SQLiteOpenHelper {
         try{
             SQLiteDatabase db = this.getReadableDatabase();
             Cursor res =  db.rawQuery("select * from lastid", null);
-            if (res != null) {
+            if (res != null && !res.isClosed()) {
                 if (res.moveToFirst()) {
                     do {
                         String id = res.getString(res.getColumnIndex("storeid"));
