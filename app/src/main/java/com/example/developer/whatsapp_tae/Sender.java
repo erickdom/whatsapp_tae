@@ -32,7 +32,7 @@ public class Sender extends IntentService {
     }
 
     private void ListenSenders() throws InterruptedException {
-        Thread.sleep(3000);
+        Thread.sleep(4500);
         DBHelper mydb = new DBHelper(getApplicationContext());
         ArrayList<Transaction> arrayOfTransactions = mydb.fetchTransactionsToSend();
         Log.d(TAG, String.valueOf(arrayOfTransactions.size()));

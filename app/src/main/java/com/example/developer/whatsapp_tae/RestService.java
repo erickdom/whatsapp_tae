@@ -65,7 +65,6 @@ public class RestService extends AsyncTask<String,String,JSONObject> {
                 url = new URL(Settings.URL_REST(this.context) + this.service + "/"+folio+"/");
             }
             try {
-
                 urlConnection = (HttpURLConnection) url.openConnection();
                 urlConnection.setRequestMethod("POST");
                 urlConnection.setDoOutput(true);

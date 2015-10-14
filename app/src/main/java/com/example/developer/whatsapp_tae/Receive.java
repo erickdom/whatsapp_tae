@@ -23,7 +23,7 @@ import java.util.regex.Pattern;
 
 public class Receive extends IntentService{
 
-    public static final int[] RANDOM_TIMES = new int[] {2000,3000,3500,2500};
+    public static final int[] RANDOM_TIMES = new int[] {3000,4000,4500,3500};
     public ContentResolver contentResolver;
     private int ListenAssignments = 0;
     private int ListenSyncContacts = 0;
@@ -187,19 +187,23 @@ public class Receive extends IntentService{
         @Override
         public void run() {
             try {
-                Messages messages;
+                Messages messages = null;
                 if(this.mje.toLowerCase().compareTo("polo") == 0) {
                     messages = new Messages(new String[]{this.num}, "La clave es marco ;) !!!");
                 }else if(this.mje.toLowerCase().compareTo("marco") == 0) {
                     messages = new Messages(new String[]{this.num}, "Polo");
                 }else if(this.mje.compareTo("1") == 0){
-                    messages = new Messages(new String[]{this.num}, RandomMessages.getStringRandom("Tiempo",""));
+                    messages = new Messages(new String[]{this.num}, RandomMessages.getStringRandom("Tiempo","",null));
 
                 }else{
-                     messages = new Messages(new String[]{this.num}, RandomMessages.getStringRandom("Error",this.mje));
+                    if(this.mje.contains("?")){
+                        messages = new Messages(new String[]{this.num}, RandomMessages.getStringRandom("Error",this.mje,null));
+                    }
                 }
-                messages.sendMessage();
-                messages.close();
+                if(messages != null){
+                    messages.sendMessage();
+                    messages.close();
+                }
 
             } catch (IOException | TimeoutException e) {
                 DBHelper dbHelper = new DBHelper(getApplicationContext());
