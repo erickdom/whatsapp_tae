@@ -62,7 +62,7 @@ public class RequestWebService extends AsyncTask<String, String, String> {
         } catch (IOException | XmlPullParserException e) {
             DBHelper dbHelper = DBHelper.getInstance(this.context);
             dbHelper.insertLog(StaticFunctions.throwToString(e), "Problema de conexión con el web service. <<" + TAG + ">>");
-            dbHelper.close();
+            
         }
 
         if(envelope.bodyIn != null) if (((SoapObject) envelope.bodyIn).getPropertyCount() > 0) {
@@ -150,7 +150,7 @@ public class RequestWebService extends AsyncTask<String, String, String> {
 
 
                     if(difference < 120.0){
-                        dbHelper.close();
+                        
                         request.execute("sms_check_transaction", this.numero, recursiveJsonTosend);
                     }else{
                         dbHelper.updateTransaction(folioToUpdate, jsonObject.getString("Response"),RandomMessages.getStringRandom("Status", msgResponse,folio_casiLimpio),"1");
@@ -167,7 +167,7 @@ public class RequestWebService extends AsyncTask<String, String, String> {
                         wContacts.insertContacts(jsonObject);
                     } catch (RemoteException | OperationApplicationException e) {
                         dbHelper.insertLog(StaticFunctions.throwToString(e), "Problema al sincronizar usuarios");
-                        dbHelper.close();
+                        
                     }*/
 
                 }else{
@@ -185,7 +185,7 @@ public class RequestWebService extends AsyncTask<String, String, String> {
                         double difference = Double.parseDouble(dbHelper.getDiffDateTransaction(folioToUpdate));
                         Log.d(TAG, String.valueOf(difference));
                         if(difference < 120.0){
-                            dbHelper.close();
+                            
                             RequestWebService request = new RequestWebService(this.context);
                             request.execute("sms_check_transaction", this.numero, this.__jsonToSend);
                         }else{
@@ -209,7 +209,7 @@ public class RequestWebService extends AsyncTask<String, String, String> {
                     }
 
                 }
-                dbHelper.close();
+                
 
             }else{
                 Messages messages = new Messages(new String[] {this.numero}, "Hubo un problema con la respuesta del servido, Revisa tu saldor");
@@ -219,7 +219,7 @@ public class RequestWebService extends AsyncTask<String, String, String> {
 
         } catch (IOException | JSONException | TimeoutException | InterruptedException e) {
             dbHelper.insertLog(StaticFunctions.throwToString(e), "Problema al leer JSON, IO, TimeOut o Conexion Interrumpida <<" + TAG + ">>");
-            dbHelper.close();
+            
             try {
                 if(this.numero!=null) {
                     Messages messages = new Messages(new String[]{this.numero}, "Hubo un problema con la conexión, Revisa tu saldo!");
@@ -228,7 +228,7 @@ public class RequestWebService extends AsyncTask<String, String, String> {
                 }
             } catch (IOException | TimeoutException e1) {
                 dbHelper.insertLog(StaticFunctions.throwToString(e1), "Problema al enviar mensaje, Error de IO o timeout con la base de datos <<" + TAG + ">>");
-                dbHelper.close();
+                
             }
         }
     }

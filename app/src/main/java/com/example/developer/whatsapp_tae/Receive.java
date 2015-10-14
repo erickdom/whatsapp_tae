@@ -145,12 +145,11 @@ public class Receive extends IntentService{
 
 
             }
-            mydb.close();
         } catch (InterruptedException | IOException e) {
             e.printStackTrace();
-            DBHelper dbHelper = DBHelper.getInstance(getApplicationContext());
+            DBHelper dbHelper = DBHelper.getInstance(getApplicationContext());;
             dbHelper.insertLog(StaticFunctions.throwToString(e),"Error al ejecutar comandos superuser");
-            dbHelper.close();
+            
         }
     }
 
@@ -205,7 +204,7 @@ public class Receive extends IntentService{
             } catch (IOException | TimeoutException e) {
                 DBHelper dbHelper = DBHelper.getInstance(getApplicationContext());
                 dbHelper.insertLog(StaticFunctions.throwToString(e),"Error al Crear hilo de envio de mensajes de prueba <<" + TAG + ">>");
-                dbHelper.close();
+                
             }
         }
     }

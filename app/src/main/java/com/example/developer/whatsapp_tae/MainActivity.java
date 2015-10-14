@@ -38,7 +38,7 @@ public class MainActivity extends Activity {
         DBHelper mydb = DBHelper.getInstance(getApplicationContext());
         ArrayList<Transaction> arrayOfTransactions = mydb.fetchTransactions(getDate());
         String totales = mydb.fetchCountAllTransactions();
-        mydb.close();
+
 
         TextView transToday = (TextView)findViewById(R.id.totalday);
         TextView transAll = (TextView)findViewById(R.id.totalall);
