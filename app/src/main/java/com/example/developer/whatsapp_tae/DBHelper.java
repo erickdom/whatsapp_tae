@@ -19,10 +19,20 @@ public class DBHelper extends SQLiteOpenHelper {
     public static final String DATABASE_NAME = "whatsapp_tae.db";
     public static final String LASTID_TABLE_NAME = "lastid";
     public Context context;
-
+    private static DBHelper mInstance = null;
     public DBHelper(Context context) {
         super(context, DATABASE_NAME, null, 10);
         this.context = context;
+    }
+    public static synchronized DBHelper getInstance(Context ctx) {
+
+        // Use the application context, which will ensure that you
+        // don't accidentally leak an Activity's context.
+        // See this article for more information: http://bit.ly/6LRzfx
+        if (mInstance == null) {
+            mInstance = new DBHelper(ctx.getApplicationContext());
+        }
+        return mInstance;
     }
 
     @Override
@@ -203,7 +213,7 @@ public class DBHelper extends SQLiteOpenHelper {
             e.printStackTrace();
         }
 
-        RestService restService = new RestService(this.context, jsonObject, "transactions");
+        RestService restService = new RestService(this.context, jsonObject, RestService.SERVICE.TRANSACTION.toString());
         restService.execute();
         return folio;
     }
@@ -249,7 +259,7 @@ public class DBHelper extends SQLiteOpenHelper {
             e.printStackTrace();
         }
 
-        RestService restService = new RestService(this.context, jsonObject, "transactions");
+        RestService restService = new RestService(this.context, jsonObject, RestService.SERVICE.TRANSACTION.toString());
         restService.execute();
 
 

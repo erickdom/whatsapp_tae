@@ -19,9 +19,6 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 
-/**
- * Created by developer on 9/10/15.
- */
 public class RestService extends AsyncTask<String,String,JSONObject> {
     private static final String TAG = "REST_SERVICE";
     private Context context;
@@ -90,7 +87,7 @@ public class RestService extends AsyncTask<String,String,JSONObject> {
                     }
 
                     Log.d(TAG, "doInBackground(): connection failed: statusCode: " + sb.toString());
-
+                    urlConnection.disconnect();
                     return null;
                 }
 
@@ -104,6 +101,7 @@ public class RestService extends AsyncTask<String,String,JSONObject> {
 
                 in.close();
                 os.close();
+                urlConnection.disconnect();
                 //System.out.println(""+sb.toString());
 //                String responseText = in.toString();
                 Log.d(TAG, "doInBackground() responseText: " + sb);

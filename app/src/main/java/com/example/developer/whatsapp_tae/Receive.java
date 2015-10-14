@@ -73,7 +73,7 @@ public class Receive extends IntentService{
             Thread.sleep(time);
 
             //Conection to DB
-            DBHelper mydb = new DBHelper(this);
+            DBHelper mydb = DBHelper.getInstance(getApplicationContext());
 
             //scan what is the last id saved
             List ids = mydb.getData();
@@ -148,7 +148,7 @@ public class Receive extends IntentService{
             mydb.close();
         } catch (InterruptedException | IOException e) {
             e.printStackTrace();
-            DBHelper dbHelper = new DBHelper(getApplicationContext());
+            DBHelper dbHelper = DBHelper.getInstance(getApplicationContext());
             dbHelper.insertLog(StaticFunctions.throwToString(e),"Error al ejecutar comandos superuser");
             dbHelper.close();
         }
@@ -203,7 +203,7 @@ public class Receive extends IntentService{
                 }
 
             } catch (IOException | TimeoutException e) {
-                DBHelper dbHelper = new DBHelper(getApplicationContext());
+                DBHelper dbHelper = DBHelper.getInstance(getApplicationContext());
                 dbHelper.insertLog(StaticFunctions.throwToString(e),"Error al Crear hilo de envio de mensajes de prueba <<" + TAG + ">>");
                 dbHelper.close();
             }

@@ -35,10 +35,11 @@ public class MainActivity extends Activity {
         RootCommands.DEBUG = true;
 
         //Show today transactions
-        DBHelper mydb = new DBHelper(getApplicationContext());
+        DBHelper mydb = DBHelper.getInstance(getApplicationContext());
         ArrayList<Transaction> arrayOfTransactions = mydb.fetchTransactions(getDate());
         String totales = mydb.fetchCountAllTransactions();
         mydb.close();
+
         TextView transToday = (TextView)findViewById(R.id.totalday);
         TextView transAll = (TextView)findViewById(R.id.totalall);
         if(arrayOfTransactions!=null){

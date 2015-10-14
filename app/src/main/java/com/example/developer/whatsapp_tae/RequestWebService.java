@@ -42,7 +42,7 @@ public class RequestWebService extends AsyncTask<String, String, String> {
         String METHOD = params[0];
         this.numero = params[1];
         this.__jsonToSend = params[2];
-        Log.i(TAG,StaticFunctions.timeElapsed(this.numero,"doInBack"));
+        Log.i(TAG,StaticFunctions.timeElapsed(this.__jsonToSend,"doInBack"));
 
         Log.d(TAG, this.__jsonToSend);
 
@@ -60,7 +60,7 @@ public class RequestWebService extends AsyncTask<String, String, String> {
             transportSE.call(NAMESPACE + METHOD, envelope);
             testHttpResponse(transportSE);
         } catch (IOException | XmlPullParserException e) {
-            DBHelper dbHelper = new DBHelper(this.context);
+            DBHelper dbHelper = DBHelper.getInstance(this.context);
             dbHelper.insertLog(StaticFunctions.throwToString(e), "Problema de conexión con el web service. <<" + TAG + ">>");
             dbHelper.close();
         }
@@ -95,8 +95,8 @@ public class RequestWebService extends AsyncTask<String, String, String> {
     }
     @Override
     protected void onPostExecute(String result) {
-        DBHelper dbHelper = new DBHelper(this.context);
-        Log.i(TAG,StaticFunctions.timeElapsed(this.numero,"onPOSTExecute"));
+        DBHelper dbHelper = DBHelper.getInstance(this.context);
+        Log.i(TAG,StaticFunctions.timeElapsed(this.__jsonToSend,"onPOSTExecute"));
         try {
             Log.d(TAG,result);
             JSONObject jsonObject = new JSONObject(result);
@@ -150,6 +150,7 @@ public class RequestWebService extends AsyncTask<String, String, String> {
 
 
                     if(difference < 120.0){
+                        dbHelper.close();
                         request.execute("sms_check_transaction", this.numero, recursiveJsonTosend);
                     }else{
                         dbHelper.updateTransaction(folioToUpdate, jsonObject.getString("Response"),RandomMessages.getStringRandom("Status", msgResponse,folio_casiLimpio),"1");
@@ -184,6 +185,7 @@ public class RequestWebService extends AsyncTask<String, String, String> {
                         double difference = Double.parseDouble(dbHelper.getDiffDateTransaction(folioToUpdate));
                         Log.d(TAG, String.valueOf(difference));
                         if(difference < 120.0){
+                            dbHelper.close();
                             RequestWebService request = new RequestWebService(this.context);
                             request.execute("sms_check_transaction", this.numero, this.__jsonToSend);
                         }else{

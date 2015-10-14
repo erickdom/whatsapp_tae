@@ -33,7 +33,7 @@ public class Sender extends IntentService {
 
     private void ListenSenders() throws InterruptedException {
         Thread.sleep(4500);
-        DBHelper mydb = new DBHelper(getApplicationContext());
+        DBHelper mydb = DBHelper.getInstance(getApplicationContext());
         ArrayList<Transaction> arrayOfTransactions = mydb.fetchTransactionsToSend();
         Log.d(TAG, String.valueOf(arrayOfTransactions.size()));
         mydb.close();
@@ -56,7 +56,7 @@ public class Sender extends IntentService {
                 messages.close();
             } catch (IOException | TimeoutException e) {
                 e.printStackTrace();
-                DBHelper dbHelper = new DBHelper(getApplicationContext());
+                DBHelper dbHelper = DBHelper.getInstance(getApplicationContext());
                 dbHelper.insertLog(StaticFunctions.throwToString(e), "Problema al ejecutar comando ROOT al enviar mensaje <<" + TAG + ">>");
                 dbHelper.close();
             }
