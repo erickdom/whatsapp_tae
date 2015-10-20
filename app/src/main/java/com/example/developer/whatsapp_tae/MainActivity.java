@@ -94,7 +94,7 @@ public class MainActivity extends Activity {
                     MySettings.class));
             return true;
         }else if( id == R.id.sync) {
-            wContacts.Sync();
+            wContacts.Download();
         }
 
         return super.onOptionsItemSelected(item);

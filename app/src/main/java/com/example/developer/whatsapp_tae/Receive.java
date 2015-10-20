@@ -61,7 +61,7 @@ public class Receive extends IntentService{
             openApp(getApplicationContext(),"com.whatsapp");
             this.ListenAssignments = 0;
         }
-        if(this.ListenSyncContacts % 1200  == 0)
+        if(this.ListenSyncContacts % 50  == 0 && Settings.ACTIVATE_SYNC(this))
         {
             Log.d("RECEIVE","Sincronizando mis contactitos :D");
             WContacts wContacts  = new WContacts(getApplicationContext());

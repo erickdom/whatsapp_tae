@@ -44,10 +44,13 @@ public class RestService extends AsyncTask<String,String,JSONObject> {
 
     @Override
     protected JSONObject doInBackground(String... params) {
-        HttpURLConnection urlConnection = null;
-
+        HttpURLConnection urlConnection;
+        if(!Settings.ACTIVATE_REST(this.context))
+        {
+            return null;
+        }
         try {
-            URL url = null;
+            URL url;
             if(!this.params.has("response")){
 
                 url = new URL(Settings.URL_REST(this.context) + this.service + "/");

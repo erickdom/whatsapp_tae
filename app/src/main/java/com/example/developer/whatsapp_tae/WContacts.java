@@ -32,73 +32,22 @@ public class WContacts {
     }
 
     public void Sync(){
-/*        try {
-            cleanOldContacts();
-        } catch (RemoteException | OperationApplicationException e) {
-            e.printStackTrace();
-        }*/
+
+        RequestWebService requestWebService = new RequestWebService(this.context);
+        requestWebService.execute("Sales_point_whatsapp_synchronize", null, "[{\"deviceID\":\"10\",\"shareKey\":\"evovcte$2015$\"}]");
+    }
+    public void Download() {
 
         RequestWebService requestWebService = new RequestWebService(this.context);
         requestWebService.execute("whatsapp_device", null, "[{\"deviceID\":\"10\",\"shareKey\":\"evovcte$2015$\"}]");
 
     }
 
-    public void insertContacts(JSONObject contacts) throws JSONException, RemoteException, OperationApplicationException {
-        JSONArray contactsArray = contacts.getJSONArray("whatsapp_device");
-        insertAsynContacts syncContacts = new insertAsynContacts(contactsArray);
+    public void insertContacts(JSONArray contacts) throws JSONException, RemoteException, OperationApplicationException {
+        insertAsynContacts syncContacts = new insertAsynContacts(contacts);
         syncContacts.execute();
     }
-    public void cleanOldContacts() throws RemoteException, OperationApplicationException {
-        Thread a = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                Cursor cursor = contentResolver.query(ContactsContract.Contacts.CONTENT_URI, null, null, null, null);
-                while (cursor.moveToNext() ) {
-                        try{
-                            String lookupKey = cursor.getString(cursor.getColumnIndex(ContactsContract.Contacts.LOOKUP_KEY));
-                            Uri uri = Uri.withAppendedPath(ContactsContract.Contacts.CONTENT_LOOKUP_URI, lookupKey);
-                            Log.d("borro",uri.toString());
-                            contentResolver.delete(uri, null, null);
-                        }catch (Exception e){
-                            e.printStackTrace();
-                        }
-//10-08 03:26:30.060  20614-20614/com.example.developer.whatsapp_tae D/borro﹕ content://com.android.contacts/contacts/lookup/0r255348-3551292F293F514731313F395B292B314F37453F3551394347314B
-//10-08 03:27:47.999  20614-20614/com.example.developer.whatsapp_tae D/borro﹕ content://com.android.contacts/contacts/lookup/0r255348-3551292F293F514731313F395B292B314F37453F3551394347314B
 
-                }
-            }
-        });
-        a.run();
-
-    }
-    private void addContact(String numero, String name) {
-        ArrayList<ContentProviderOperation> operationList = new ArrayList<>();
-        //Create contact
-        operationList.add(ContentProviderOperation.newInsert(ContactsContract.RawContacts.CONTENT_URI)
-                .withValue(ContactsContract.RawContacts.ACCOUNT_TYPE, null)
-                .withValue(ContactsContract.RawContacts.ACCOUNT_NAME, null)
-                .build());
-        //q
-        operationList.add(ContentProviderOperation.newInsert(Data.CONTENT_URI)
-                .withValueBackReference(Data.RAW_CONTACT_ID, 0)
-                .withValue(Data.MIMETYPE, StructuredName.CONTENT_ITEM_TYPE)
-                .withValue(StructuredName.GIVEN_NAME, "")
-                .withValue(StructuredName.FAMILY_NAME, name)
-                .build());
-
-        operationList.add(ContentProviderOperation.newInsert(Data.CONTENT_URI)
-                .withValueBackReference(Data.RAW_CONTACT_ID, 0)
-                .withValue(ContactsContract.Data.MIMETYPE, ContactsContract.CommonDataKinds.Phone.CONTENT_ITEM_TYPE)
-                .withValue(ContactsContract.CommonDataKinds.Phone.NUMBER, numero)
-                .withValue(ContactsContract.CommonDataKinds.Phone.TYPE, Phone.TYPE_HOME)
-                .build());
-
-        try{
-            contentResolver.applyBatch(ContactsContract.AUTHORITY, operationList);
-        }catch(Exception e){
-            e.printStackTrace();
-        }
-    }
 
 
     public class insertAsynContacts extends AsyncTask<String,String,String>{
@@ -114,16 +63,53 @@ public class WContacts {
                     for(int i = 0; i < __contacts.length(); i++) {
                         String name;
                         JSONObject contact = this.__contacts.getJSONObject(i);
-                        name = contact.getString("nombre").replaceAll("\\s+", "");
-                        String numero = contact.getString("numero").replaceAll("\\s+", "");
-                        addContact(numero, name);
+                        if(contact.has("salesPoint") && contact.has("status")) {
+                            if (contact.getString("status").compareTo("1")  == 0) {
+                                name = contact.getString("salesPoint").replaceAll("\\s+", "");
+                                String numero = contact.getString("salesPoint").replaceAll("\\s+", "");
+                                addContact(numero, name);
+                            }
+                        }else {
+
+                            name = contact.getString("nombre").replaceAll("\\s+", "");
+                            String numero = contact.getString("numero").replaceAll("\\s+", "");
+                            addContact(numero, name);
+                        }
                     }
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }
-            Log.d("BACKGROUND-ASYNC","SE COMPLETO LA SINCRONISACION");
+            Log.d("BACKGROUND-ASYNC","SE COMPLETO LA SINCRONIZACION");
             return "Exito";
 
+        }
+        private void addContact(String numero, String name) {
+            ArrayList<ContentProviderOperation> operationList = new ArrayList<>();
+            //Create contact
+            operationList.add(ContentProviderOperation.newInsert(ContactsContract.RawContacts.CONTENT_URI)
+                    .withValue(ContactsContract.RawContacts.ACCOUNT_TYPE, null)
+                    .withValue(ContactsContract.RawContacts.ACCOUNT_NAME, null)
+                    .build());
+            //q
+            operationList.add(ContentProviderOperation.newInsert(Data.CONTENT_URI)
+                    .withValueBackReference(Data.RAW_CONTACT_ID, 0)
+                    .withValue(Data.MIMETYPE, StructuredName.CONTENT_ITEM_TYPE)
+                    .withValue(StructuredName.GIVEN_NAME, "")
+                    .withValue(StructuredName.FAMILY_NAME, name)
+                    .build());
+
+            operationList.add(ContentProviderOperation.newInsert(Data.CONTENT_URI)
+                    .withValueBackReference(Data.RAW_CONTACT_ID, 0)
+                    .withValue(ContactsContract.Data.MIMETYPE, ContactsContract.CommonDataKinds.Phone.CONTENT_ITEM_TYPE)
+                    .withValue(ContactsContract.CommonDataKinds.Phone.NUMBER, numero)
+                    .withValue(ContactsContract.CommonDataKinds.Phone.TYPE, Phone.TYPE_HOME)
+                    .build());
+
+            try{
+                contentResolver.applyBatch(ContactsContract.AUTHORITY, operationList);
+            }catch(Exception e){
+                e.printStackTrace();
+            }
         }
     }
 }

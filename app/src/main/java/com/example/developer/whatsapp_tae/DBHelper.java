@@ -124,7 +124,7 @@ public class DBHelper extends SQLiteOpenHelper {
                 if (res.moveToFirst()) {
                     do {
 
-                        Transaction transaction = new Transaction(
+                        Transaction transaction = new   Transaction(
                                 res.getString(res.getColumnIndex("message")),
                                 res.getString(res.getColumnIndex("status")),
                                 res.getString(res.getColumnIndex("response")),

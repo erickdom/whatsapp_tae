@@ -20,4 +20,12 @@ public  class Settings {
         SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(context);
         return  preferences.getString("URLWS","http://ventamovil.com.mx:9110");
     }
+    static public boolean ACTIVATE_REST(Context context) {
+        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(context);
+        return  preferences.getBoolean("ACTIVATE_REST", false);
+    }
+    static public boolean ACTIVATE_SYNC(Context context) {
+        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(context);
+        return  preferences.getBoolean("ACTIVATE_SYNC",false);
+    }
 }

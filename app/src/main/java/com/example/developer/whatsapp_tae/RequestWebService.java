@@ -7,6 +7,7 @@ import android.os.AsyncTask;
 import android.os.RemoteException;
 import android.util.Log;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.ksoap2.SoapEnvelope;
@@ -43,11 +44,10 @@ public class RequestWebService extends AsyncTask<String, String, String> {
         this.numero = params[1];
         this.__jsonToSend = params[2];
         Log.i(TAG,StaticFunctions.timeElapsed(this.__jsonToSend,"doInBack"));
-
         Log.d(TAG, this.__jsonToSend);
 
         SoapObject request = new SoapObject(NAMESPACE, METHOD);
-        if(METHOD.compareTo("sms_check_transaction") == 0 || METHOD.compareTo("whatsapp_device") == 0 )
+        if(METHOD.compareTo("sms_check_transaction") == 0 || METHOD.compareTo("whatsapp_device") == 0 || METHOD.compareTo("Sales_point_whatsapp_synchronize") == 0)
             request.addProperty("jrquest", this.__jsonToSend);
         else {
             request.addProperty("sgateway", this.__jsonToSend);
@@ -69,12 +69,10 @@ public class RequestWebService extends AsyncTask<String, String, String> {
             SoapObject resultSOAP = (SoapObject) envelope.bodyIn;
             resultJSON = resultSOAP.getProperty(0).toString();
         }
-        if(transportSE != null) {
-            try {
-                transportSE.getServiceConnection().disconnect();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+        try {
+            transportSE.getServiceConnection().disconnect();
+        } catch (IOException e) {
+            e.printStackTrace();
         }
         return resultJSON;
     }
@@ -96,6 +94,8 @@ public class RequestWebService extends AsyncTask<String, String, String> {
     @Override
     protected void onPostExecute(String result) {
         DBHelper dbHelper = DBHelper.getInstance(this.context);
+
+
         Log.i(TAG,StaticFunctions.timeElapsed(this.__jsonToSend,"onPOSTExecute"));
         try {
             Log.d(TAG,result);
@@ -117,7 +117,7 @@ public class RequestWebService extends AsyncTask<String, String, String> {
 
                 if(Confirmation.compareTo("00") == 0) {
                     Log.d(TAG, "Confirm-->" + this.numero + "Message--->" + msgResponse);
-                    String folioToUpdate = folio_casiLimpio.replaceFirst("^0+(?!$)","");
+                    String folioToUpdate = folio_casiLimpio.replaceFirst("^0+(?!$)", "");
                     dbHelper.updateTransaction(folioToUpdate, jsonObject.getString("Confirmation"), RandomMessages.getStringRandom("Status", msgResponse,folio_casiLimpio),"1");
 
                 }else if(Confirmation.compareTo("24") == 0 || Confirmation.compareTo("17") == 0)  {
@@ -161,15 +161,21 @@ public class RequestWebService extends AsyncTask<String, String, String> {
                     dbHelper.updateTransaction(folioToUpdate, jsonObject.getString("Confirmation"), RandomMessages.getStringRandom("Status", msgResponse,folio_casiLimpio), "1");
                 }
             }else if(jsonObject.has("Response")){
-                if(jsonObject.has("whatsapp_device")) {
-/*                    WContacts wContacts = new WContacts(context);
+                if(jsonObject.has("whatsapp_device") || jsonObject.has("Sales_point_whatsapp_synchronize")) {
+                    JSONArray contactsArray;
+                    WContacts wContacts = new WContacts(context);
+                    if(jsonObject.has("Sales_point_whatsapp_synchronize")){
+                        contactsArray = jsonObject.getJSONArray("Sales_point_whatsapp_synchronize");
+
+                    }else{
+                        contactsArray = jsonObject.getJSONArray("whatsapp_device");
+
+                    }
                     try {
-                        wContacts.insertContacts(jsonObject);
+                        wContacts.insertContacts(contactsArray);
                     } catch (RemoteException | OperationApplicationException e) {
                         dbHelper.insertLog(StaticFunctions.throwToString(e), "Problema al sincronizar usuarios");
-                        
-                    }*/
-
+                    }
                 }else{
                     if(jsonObject.getString("Response").compareTo("24") == 0 || jsonObject.getString("Response").compareTo("17") == 0 )
                     {
@@ -202,7 +208,7 @@ public class RequestWebService extends AsyncTask<String, String, String> {
                             folio = jsonSended.getString("Folio_Pos");
                         }
 
-                        String folio_casiLimpio = folio.replace(Settings.APP_ID(this.context), "");
+                        String folio_casiLimpio = folio.replaceFirst(Settings.APP_ID(this.context), "");
                         String folioToUpdate = folio_casiLimpio.replaceFirst("^0+(?!$)","");
 
                         dbHelper.updateTransaction(folioToUpdate, jsonObject.getString("Response"),RandomMessages.getStringRandom("Status", msgResponse, folio_casiLimpio),"1");
@@ -212,7 +218,7 @@ public class RequestWebService extends AsyncTask<String, String, String> {
                 
 
             }else{
-                Messages messages = new Messages(new String[] {this.numero}, "Hubo un problema con la respuesta del servido, Revisa tu saldor");
+                Messages messages = new Messages(new String[] {this.numero}, "Hubo un problema con la respuesta del servido, Revisa tu saldo");
                 messages.sendMessage();
                 messages.close();
             }

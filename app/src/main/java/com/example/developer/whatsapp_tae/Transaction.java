@@ -45,7 +45,7 @@ public class Transaction {
     }
 
     public String getNumero() {
-        if(numero.length()>10) {
+        if(numero != null && numero.length()>10) {
             return numero.substring(3, 13);
         }else {
             return numero;

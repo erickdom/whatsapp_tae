@@ -20,5 +20,17 @@
         android:dialogTitle="Ingresa la URL del API REST"
         android:inputType="textUri"
         android:summary="URL del api rest"/>
+    <SwitchPreference
+        android:key="ACTIVATE_REST"
+        android:title="ACTIVAR LOG"
+        android:summary="Activar log del api rest"
+        />
+    <SwitchPreference
+        android:key="ACTIVATE_SYNC"
+        android:title="AUTO SYNC"
+        android:summary="Activar la sincronización automatica de usuarios"
+        />
+
+
 
 </PreferenceScreen>
