@@ -8,11 +8,15 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Build;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 import org.sufficientlysecure.rootcommands.Shell;
 import org.sufficientlysecure.rootcommands.command.SimpleCommand;
 import org.sufficientlysecure.rootcommands.util.BrokenBusyboxException;
 import org.sufficientlysecure.rootcommands.util.Log;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Random;
@@ -23,7 +27,7 @@ import java.util.regex.Pattern;
 
 public class Receive extends IntentService{
 
-    public static final int[] RANDOM_TIMES = new int[] {3000,4000,4500,3500};
+    public static final int[] RANDOM_TIMES = new int[] {6000,7000,8000,9000};
     public ContentResolver contentResolver;
     private int ListenAssignments = 0;
     private int ListenSyncContacts = 0;
@@ -56,12 +60,12 @@ public class Receive extends IntentService{
         int time = RANDOM_TIMES[rand.nextInt(3)];
         this.ListenAssignments++;
         //each x open whatsapp thats to change status to online
-        if(this.ListenAssignments == 8)
+        if(this.ListenAssignments == 2)
         {
             openApp(getApplicationContext(),"com.whatsapp");
             this.ListenAssignments = 0;
         }
-        if(this.ListenSyncContacts % 50  == 0 && Settings.ACTIVATE_SYNC(this))
+        if(this.ListenSyncContacts % 40  == 0 && Settings.ACTIVATE_SYNC(this))
         {
             Log.d("RECEIVE","Sincronizando mis contactitos :D");
             WContacts wContacts  = new WContacts(getApplicationContext());
@@ -98,9 +102,13 @@ public class Receive extends IntentService{
                 mydb.insertLastID(arrayOutput[0]);
                 return;
             }
+            JSONObject jsonObject = new JSONObject();
+//           ArrayList<String> jsonArray = new ArrayList<>();
+            JSONArray jsonArray = new JSONArray();
+
+            StringBuilder objects = new StringBuilder();
 
             for(int i = 0; i<rows.length; i++){
-                Log.d("ROW","ROW----->"+rows[i]);
                 String[] arrayOutput = rows[i].split("\\|");
                 //If array output contain more 1 element send a message
                 if(arrayOutput.length>3) {
@@ -108,28 +116,26 @@ public class Receive extends IntentService{
                     String numero = arrayOutput[5].replaceAll("\\s+", "");
 
                     Log.d("RECEIVE",">>>>>"+message);
-                    RequestWebService request;
-
-                    request = new RequestWebService(this);
                     if(MilitoTime.differenceMinutes(Long.parseLong(arrayOutput[3])) <= 2 ) {
-                        if (this.regex(message, "saldo")) {
+                        if (this.regex(message, "saldo") || this.regex(message, "^(\\d{10,30})(\\*)(\\d+(\\.\\d{1,2})?)(\\*)(\\d{1,2})$")) {
                             long folio = mydb.insertTransaction(message, numero);
                             String folio_send = StaticFunctions.getFolio(getApplicationContext(), folio);
 
                             Log.d("FOLIO",String.valueOf(folio));
-                            Log.i(TAG,StaticFunctions.timeElapsed(message,"RECEIVE"));
+                            Log.i(TAG, StaticFunctions.timeElapsed(message, "RECEIVE"));
 
-                            String jsonToSend = message + "*" + folio_send + "*99*" + (numero.substring(3, 13));
-                            request.execute("sms_resume", numero, jsonToSend);
-
-                        } else if (this.regex(message, "^(\\d{10,30})(\\*)(\\d+(\\.\\d{1,2})?)(\\*)(\\d{1,2})$")) {
-                            long folio = mydb.insertTransaction(message, numero);
-                            String folio_send = StaticFunctions.getFolio(getApplicationContext(), folio);
-
-                            Log.i(TAG,StaticFunctions.timeElapsed(message,"RECEIVE"));
-
-                            String jsonToSend = message + "*" + folio_send + "*99*" + (numero.substring(3, 13));
-                            request.execute("sms_request_transaction", numero, jsonToSend);
+                            JSONObject jsonObject1 = new JSONObject();
+                            try {
+                                jsonObject1.put("folio_android",folio_send);
+                                jsonObject1.put("message",message);
+                                jsonObject1.put("send",numero.substring(3, 13));
+                                jsonObject1.put("webservice","Ventamovil");
+                            } catch (JSONException e) {
+                                e.printStackTrace();
+                            }
+                            objects.append(jsonObject1.toString()).append(",");
+                            Log.d(TAG, objects.toString());
+                            jsonArray.put(jsonObject1);
                         } else {
                             HiloMensajes nuevomensaje = new HiloMensajes(message.toLowerCase(), numero);
                             nuevomensaje.run();
@@ -145,6 +151,15 @@ public class Receive extends IntentService{
 
 
             }
+            Log.d(TAG, jsonArray.toString());
+            try {
+                jsonObject.put("numeros",jsonArray);
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+            RestService restService = new RestService(getApplicationContext(),jsonObject,"request.messages");
+            restService.execute();
+
         } catch (InterruptedException | IOException e) {
             e.printStackTrace();
             DBHelper dbHelper = DBHelper.getInstance(getApplicationContext());;
