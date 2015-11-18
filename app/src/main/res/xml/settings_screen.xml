@@ -30,6 +30,14 @@
         android:title="AUTO SYNC"
         android:summary="Activar la sincronización automatica de usuarios"
         />
+    <ListPreference
+        android:title="Compañia"
+        android:summary="Selecciona una compañia para consumo de webservice"
+        android:key="WEBSERVICE"
+        android:defaultValue="Ventamovil"
+        android:entries="@array/listArray"
+        android:entryValues="@array/listValues"
+        />
 
 
 

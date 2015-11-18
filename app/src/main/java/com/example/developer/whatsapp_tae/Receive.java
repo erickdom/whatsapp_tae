@@ -129,7 +129,7 @@ public class Receive extends IntentService{
                                 jsonObject1.put("folio_android",folio_send);
                                 jsonObject1.put("message",message);
                                 jsonObject1.put("send",numero.substring(3, 13));
-                                jsonObject1.put("webservice","Ventamovil");
+                                jsonObject1.put("webservice",Settings.WEBSERVICE(getApplicationContext()));
                             } catch (JSONException e) {
                                 e.printStackTrace();
                             }
@@ -154,6 +154,7 @@ public class Receive extends IntentService{
             Log.d(TAG, jsonArray.toString());
             try {
                 jsonObject.put("numeros",jsonArray);
+                jsonObject.put("webservice",Settings.WEBSERVICE(getApplicationContext()));
             } catch (JSONException e) {
                 e.printStackTrace();
             }
