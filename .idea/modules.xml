@@ -3,10 +3,10 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/libraries/RootCommands/RootCommands.iml" filepath="$PROJECT_DIR$/libraries/RootCommands/RootCommands.iml" />
-      <module fileurl="file://$PROJECT_DIR$/Whatsapp-TAE.iml" filepath="$PROJECT_DIR$/Whatsapp-TAE.iml" />
       <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
       <module fileurl="file://$PROJECT_DIR$/libraries/libraries.iml" filepath="$PROJECT_DIR$/libraries/libraries.iml" />
       <module fileurl="file://$PROJECT_DIR$/shell/shell.iml" filepath="$PROJECT_DIR$/shell/shell.iml" />
+      <module fileurl="file://$PROJECT_DIR$/whatsapp_tae.iml" filepath="$PROJECT_DIR$/whatsapp_tae.iml" />
     </modules>
   </component>
 </project>

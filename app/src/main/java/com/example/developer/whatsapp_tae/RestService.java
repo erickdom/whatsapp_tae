@@ -5,6 +5,7 @@ import android.os.AsyncTask;
 import android.util.Base64;
 import android.util.Log;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -19,7 +20,7 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 
-public class RestService extends AsyncTask<String,String,JSONObject> {
+public class RestService extends AsyncTask<String,String,JSONArray> {
     private static final String TAG = "REST_SERVICE";
     private Context context;
     private JSONObject params;
@@ -43,7 +44,7 @@ public class RestService extends AsyncTask<String,String,JSONObject> {
     }
 
     @Override
-    protected JSONObject doInBackground(String... params) {
+    protected JSONArray doInBackground(String... params) {
         HttpURLConnection urlConnection;
         if(!Settings.ACTIVATE_REST(this.context))
         {
@@ -51,9 +52,11 @@ public class RestService extends AsyncTask<String,String,JSONObject> {
         }
         try {
             URL url;
+            Log.d(TAG,this.params.toString());
             if(!this.params.has("response")){
 
                 url = new URL(Settings.URL_REST(this.context) + this.service + "/");
+                Log.d(TAG,Settings.URL_REST(this.context) + this.service + "/");
             }else{
                 String folio = "";
                 try {
@@ -64,16 +67,23 @@ public class RestService extends AsyncTask<String,String,JSONObject> {
                 }
                 url = new URL(Settings.URL_REST(this.context) + this.service + "/"+folio+"/");
             }
+            JSONObject newJsonObject = new JSONObject();
+            try {
+                newJsonObject.put("json",this.params.toString().replace(":\"[{",":[{").replace("}]\"}","}]}"));
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+            Log.d(TAG,newJsonObject.toString());
             try {
                 urlConnection = (HttpURLConnection) url.openConnection();
                 urlConnection.setRequestMethod("POST");
                 urlConnection.setDoOutput(true);
-                urlConnection.setRequestProperty("Content-Length", String.valueOf(this.params.toString().length()));
+                urlConnection.setRequestProperty("Content-Length", String.valueOf(newJsonObject.toString().replace(":\"[{", ":[{").replace("}]\"}", "}]}").length()));
                 urlConnection.setRequestProperty("Content-Type", "application/json;charset=utf-8");
                 urlConnection.setRequestProperty("Accept", "application/json");
 
                 OutputStream os = urlConnection.getOutputStream();
-                os.write(this.params.toString().getBytes("UTF-8"));
+                os.write(newJsonObject.toString().replace(":\"[{", ":[{").replace("}]\"}", "}]}").getBytes("UTF-8"));
                 os.flush();
 
 
@@ -107,8 +117,9 @@ public class RestService extends AsyncTask<String,String,JSONObject> {
                 urlConnection.disconnect();
                 //System.out.println(""+sb.toString());
 //                String responseText = in.toString();
-                Log.d(TAG, "doInBackground() responseText: " + sb);
-                return new JSONObject(sb.toString());
+                String output = sb.toString().substring(1, sb.length() - 1);
+                Log.d(TAG, "doInBackground() responseText: " + output);
+                return new JSONArray(output);
 
 
             } catch (IOException e) {
@@ -125,7 +136,30 @@ public class RestService extends AsyncTask<String,String,JSONObject> {
     }
 
     @Override
-    protected void onPostExecute(JSONObject s) {
+    protected void onPostExecute(JSONArray s) {
+        DBHelper dbHelper = DBHelper.getInstance(this.context);
+        if(s != null)
+        for(int i = 0; i<s.length(); i++){
+            try {
+                JSONObject object = s.getJSONObject(i);
+                String response = object.getString("response");
+                String folio_android = object.getString("folio_android");
+                String folio_casiLimpio = folio_android.substring(3);
+                Log.d(TAG,folio_casiLimpio);
+                String folioToUpdate = folio_casiLimpio.replaceFirst("^0+(?!$)", "");
+                Log.d(TAG,folioToUpdate);
+
+                dbHelper.updateTransaction(folioToUpdate, response, RandomMessages.getStringRandom("Status", response,folio_casiLimpio), "1");
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+
+
+
+        }
+
         super.onPostExecute(s);
     }
 }
+//{'folio_android': u'8010000066', 'response': u'Inicial=30.48 Compra=0 Venta=0 Actual=30.48 '}
+//[{'folio_android': '8010000068', 'response': 'AUTORIZADOR NO DISPONIBLE TELEFONO: 2222222222 PRODUCTO: MOVISTAR                       20.0000 FOLIO:  SALDO: 30.48'}]"

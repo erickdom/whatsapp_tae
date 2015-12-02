@@ -60,7 +60,6 @@ public class Messages {
     public Boolean sendMessage() throws IOException, TimeoutException {
         //Inicia la vida loca :v
 
-        commandsTestOnClick("ps | grep -w 'com.whatsapp' | awk '{print $2}' | xargs kill");
         for (String __destino : this.__destinos) {
             String str3;
             long l1;
@@ -74,6 +73,7 @@ public class Messages {
             l1 = System.currentTimeMillis();
             l2 = l1 / 1000L;
             k = localRandom.nextInt();
+            commandsTestOnClick("pkill 'com.whatsapp'");
 
             str1 = "sqlite3 /data/data/com.whatsapp/databases/msgstore.db \"INSERT INTO messages (key_remote_jid, key_from_me, key_id, status, needs_push, data, timestamp, MEDIA_URL, media_mime_type, media_wa_type, MEDIA_SIZE, media_name , latitude, longitude, thumb_image, remote_resource, received_timestamp, send_timestamp, receipt_server_timestamp, receipt_device_timestamp, raw_data, media_hash, recipient_count, media_duration, origin)VALUES ('"
                     + str3
