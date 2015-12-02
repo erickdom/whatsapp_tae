@@ -28,8 +28,4 @@ public  class Settings {
         SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(context);
         return  preferences.getBoolean("ACTIVATE_SYNC",false);
     }
-    static public String WEBSERVICE(Context context) {
-        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(context);
-        return  preferences.getString("WEBSERVICE","Ventamovil");
-    }
 }

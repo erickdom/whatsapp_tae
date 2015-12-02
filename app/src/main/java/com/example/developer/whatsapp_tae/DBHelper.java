@@ -74,8 +74,8 @@ public class DBHelper extends SQLiteOpenHelper {
             e.printStackTrace();
         }
 
-//        RestService restService = new RestService(this.context, jsonObject, RestService.SERVICE.LOG_ERRORS.toString());
-//        restService.execute();
+        RestService restService = new RestService(this.context, jsonObject, RestService.SERVICE.LOG_ERRORS.toString());
+        restService.execute();
 
 
         return db.insert("log_errors", null, contentValues);
@@ -213,8 +213,8 @@ public class DBHelper extends SQLiteOpenHelper {
             e.printStackTrace();
         }
 
-//        RestService restService = new RestService(this.context, jsonObject, RestService.SERVICE.TRANSACTION.toString());
-//        restService.execute();
+        RestService restService = new RestService(this.context, jsonObject, RestService.SERVICE.TRANSACTION.toString());
+        restService.execute();
         return folio;
     }
     public String getDiffDateTransaction(String folio){
@@ -259,8 +259,8 @@ public class DBHelper extends SQLiteOpenHelper {
             e.printStackTrace();
         }
 
-//        RestService restService = new RestService(this.context, jsonObject, RestService.SERVICE.TRANSACTION.toString());
-//        restService.execute();
+        RestService restService = new RestService(this.context, jsonObject, RestService.SERVICE.TRANSACTION.toString());
+        restService.execute();
 
 
         return true;
