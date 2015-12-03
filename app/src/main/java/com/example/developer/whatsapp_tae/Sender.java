@@ -19,16 +19,20 @@ public class Sender extends IntentService {
 
     @Override
     protected void onHandleIntent(Intent intent) {
-
         //Loop
         //noinspection StatementWithEmptyBody
-        while(true) {
-            try {
-                ListenSenders();
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-        }
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    while(true){
+                        try{
+                            ListenSenders();
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                }
+            }).start();
     }
 
     private void ListenSenders() throws InterruptedException {

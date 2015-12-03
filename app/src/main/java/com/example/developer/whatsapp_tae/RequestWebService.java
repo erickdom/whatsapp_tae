@@ -113,8 +113,8 @@ public class RequestWebService extends AsyncTask<String, String, String> {
                 }else{
                     folio = arrayParse[1];
                 }
-                String folio_casiLimpio = folio.replace(Settings.APP_ID(this.context),"");
-
+                String folio_casiLimpio = folio.substring(3,10);
+                Log.d(TAG,folio_casiLimpio);
                 if(Confirmation.compareTo("00") == 0) {
                     Log.d(TAG, "Confirm-->" + this.numero + "Message--->" + msgResponse);
                     String folioToUpdate = folio_casiLimpio.replaceFirst("^0+(?!$)", "");
@@ -137,7 +137,7 @@ public class RequestWebService extends AsyncTask<String, String, String> {
                     String recursiveJsonTosend;
                     recursiveJsonTosend = "{\"Folio_Pos\":\""+ folio +"\",\"User\":\""+ send +"\"}";
 
-                    String folioToUpdate = folio.replace(Settings.APP_ID(this.context),"").replaceFirst("^0+(?!$)", "");
+                    String folioToUpdate = folio.substring(3,10).replaceFirst("^0+(?!$)", "");
                     String differenceString = dbHelper.getDiffDateTransaction(folioToUpdate);
                     double difference = 0.0;
                     try{
@@ -157,7 +157,7 @@ public class RequestWebService extends AsyncTask<String, String, String> {
                     }
 
                 } else {
-                    String folioToUpdate = folio.replace(Settings.APP_ID(this.context),"").replaceFirst("^0+(?!$)","");
+                    String folioToUpdate = folio.substring(3,10).replaceFirst("^0+(?!$)","");
                     dbHelper.updateTransaction(folioToUpdate, jsonObject.getString("Confirmation"), RandomMessages.getStringRandom("Status", msgResponse,folio_casiLimpio), "1");
                 }
             }else if(jsonObject.has("Response")){
@@ -185,7 +185,7 @@ public class RequestWebService extends AsyncTask<String, String, String> {
                         JSONObject jsonObjectSended = new JSONObject(this.__jsonToSend);
 
                         String folio = jsonObjectSended.getString("Folio_Pos");
-                        String folio_casiLimpio = folio.replace(Settings.APP_ID(this.context), "");
+                        String folio_casiLimpio = folio.substring(3,10);
                         String folioToUpdate = folio_casiLimpio.replaceFirst("^0+(?!$)","");
 
                         double difference = Double.parseDouble(dbHelper.getDiffDateTransaction(folioToUpdate));

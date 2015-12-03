@@ -35,14 +35,21 @@ public class Receive extends IntentService{
 
     @Override
     protected void onHandleIntent(Intent intent) {
-
-        try {
-            Shell shell = Shell.startRootShell();
             //noinspection InfiniteLoopStatement
-            while(true) Listen(shell);
-        } catch (IOException | TimeoutException e) {
-            e.printStackTrace();
-        }
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        Shell shell = Shell.startRootShell();
+                        while(true) {
+                            Listen(shell);
+                        }
+                    } catch (IOException | TimeoutException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }).start();
+
 
     }
 
