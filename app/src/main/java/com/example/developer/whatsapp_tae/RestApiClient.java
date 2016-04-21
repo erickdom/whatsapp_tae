@@ -100,6 +100,7 @@ public class RestApiClient extends AsyncTask<String,String,String> {
         try {
             if(MethodType == METHOD.GET) {
                 url = new URL(Url + MethodName  + "/" + paramsURL);
+                Log.d(TAG,Url + MethodName  + "/" + paramsURL);
             }else{
                 url = new URL(Url + MethodName);
             }
@@ -129,7 +130,7 @@ public class RestApiClient extends AsyncTask<String,String,String> {
 
             for(String param : Parameters)
             {
-               UrlParam.append(param).append("/");
+                UrlParam.append(param).append("/");
             }
             return UrlParam.toString();
 
@@ -137,7 +138,7 @@ public class RestApiClient extends AsyncTask<String,String,String> {
             return null;
 
         }else if(Params instanceof JSONObject) {
-            return null;
+            return Params.toString();
         }else if(MethodType == METHOD.GET){
             return "";
         }else{
@@ -202,6 +203,8 @@ public class RestApiClient extends AsyncTask<String,String,String> {
 
         return null;
     }
+
+
 
     @Override
     protected void onPreExecute() {

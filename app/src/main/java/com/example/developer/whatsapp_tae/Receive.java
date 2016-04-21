@@ -8,6 +8,8 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Build;
 
+import org.json.JSONException;
+import org.json.JSONObject;
 import org.sufficientlysecure.rootcommands.Shell;
 import org.sufficientlysecure.rootcommands.command.SimpleCommand;
 import org.sufficientlysecure.rootcommands.util.BrokenBusyboxException;
@@ -112,7 +114,7 @@ public class Receive extends IntentService{
                 //If array output contain more 1 element send a message
                 if(arrayOutput.length>3) {
                     String message = arrayOutput[1].toLowerCase();
-                    String numero = arrayOutput[5].replaceAll("\\s+", "");
+                    final String numero = arrayOutput[5].replaceAll("\\s+", "");
 
                     Log.d("RECEIVE",">>>>>"+message);
                     RequestWebService request;
@@ -133,10 +135,53 @@ public class Receive extends IntentService{
                             long folio = mydb.insertTransaction(message, numero);
                             String folio_send = StaticFunctions.getFolio(getApplicationContext(), folio);
 
-                            Log.i(TAG,StaticFunctions.timeElapsed(message,"RECEIVE"));
+                            Log.i(TAG, StaticFunctions.timeElapsed(message, "RECEIVE"));
 
                             String jsonToSend = message + "*" + folio_send + "*99*" + (numero.substring(3, 13));
                             request.execute("sms_request_transaction", numero, jsonToSend);
+
+                        }else if(this.regex(message, "^(\\d(\\*)(\\d{6})(\\*)(\\d{4})(\\*)(\\d)(\\*)(\\d+\\.(\\d{0,2}))(\\*)(\\d+)(\\*)(\\d))$")) {
+                            Log.d(TAG, "Holy shit");
+
+                            JSONObject jsonObject = new JSONObject();
+                            try {
+                                jsonObject.put("catenation", message);
+                                jsonObject.put("device_address", numero.replace("@s.whatsapp.net",""));
+                                jsonObject.put("plataform_id", 4);
+                                jsonObject.put("device_id", 10);
+
+
+                            } catch (JSONException e) {
+                                e.printStackTrace();
+                            }
+
+
+                            new RestApiClient("http://apicoadsy.eventamovil.mx/", "api/client_deposits/add_by_string/", jsonObject, RestApiClient.METHOD.POST, new RestApiClient.RestInterface() {
+                                @Override
+                                public void onFinish(String Result) {
+                                    JSONObject jsonObjectReturned = null;
+                                    try {
+                                        jsonObjectReturned = new JSONObject(Result);
+                                        String messageString = jsonObjectReturned.getString("message");
+                                        Messages messages = null;
+                                        try {
+                                            messages = new Messages(new String[]{numero}, messageString);
+                                            messages.sendMessage();
+                                            messages.close();
+                                        } catch (IOException | TimeoutException e) {
+                                            e.printStackTrace();
+                                        }
+                                    } catch (JSONException e) {
+                                        e.printStackTrace();
+                                    }
+                                }
+
+                                @Override
+                                public void onBefore() {
+
+                                }
+                            }).execute();
+
                         } else {
                             HiloMensajes nuevomensaje = new HiloMensajes(message.toLowerCase(), numero);
                             nuevomensaje.run();
