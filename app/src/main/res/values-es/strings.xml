@@ -1,0 +1,10 @@
+<resources>
+    <string name="app_name">Whatsapp-TAE VIVA MEXICO</string>
+
+    <string name="hello_world">Hola Mundo!</string>
+    <string name="action_settings">AJUSTES</string>
+    <string name="sync">Sincronizar usuarios</string>
+    <string name="numero_prueba">(555)-555-5555</string>
+    <string name="detalle_description">El estado de tu transacción es: La transaccion se realizo correctamanete!</string>
+    <string name="new_table">Nueva Tabla @warning</string>
+</resources>

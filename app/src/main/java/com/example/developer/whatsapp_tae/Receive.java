@@ -141,7 +141,6 @@ public class Receive extends IntentService{
                             request.execute("sms_request_transaction", numero, jsonToSend);
 
                         }else if(this.regex(message, "^(\\d(\\*)(\\d{6})(\\*)(\\d{4})(\\*)(\\d)(\\*)(\\d+\\.(\\d{0,2}))(\\*)(\\d+)(\\*)(\\d))$")) {
-                            Log.d(TAG, "Holy shit");
 
                             JSONObject jsonObject = new JSONObject();
                             try {
